@@ -1,1 +1,1 @@
-java -jar ../ext-doc.jar ext.xml ../output ../template/ext/template.xml
+java -jar ../ext-doc.jar -p ext.xml -o ../output -t ../template/ext/template.xml

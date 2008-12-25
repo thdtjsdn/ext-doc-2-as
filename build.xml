@@ -4,9 +4,11 @@
     <property environment="env"/>    
     <property file="build.properties"/>
     <property name="version" value="snapshot"/>
+    <property name="cli" value="commons-cli-1.1.jar"/>
 
     <path id="classpath.base">
         <pathelement location="${build.dir}/classes"/>
+        <pathelement location="${lib.dir}/${cli}"/>
     </path>
 
     <path id="classpath.test">
@@ -31,7 +33,7 @@
         <mkdir dir="${build.dir}/classes"/>
         <xjc schema="${schema.dir}/ext-doc.xsd" destdir="${src.dir}" package="extdoc.jsdoc.schema"/>
         <xjc schema="${schema.dir}/template.xsd" destdir="${src.dir}" package="extdoc.jsdoc.tplschema"/>
-        <javac srcdir="${src.dir}" destdir="${build.dir}/classes" debug="on"/>        
+        <javac srcdir="${src.dir}" destdir="${build.dir}/classes" debug="on" classpathref="classpath.base"/>        
     </target>
 
     <target name="compile-test" depends="compile">
@@ -57,6 +59,7 @@
             <fileset dir="${build.dir}/classes" includes="**/*.class"/>
             <manifest>
                 <attribute name="Main-Class" value="extdoc.Main"/>
+                <attribute name="Class-Path" value="lib/${cli}"/>
             </manifest>
         </jar>
     </target>
@@ -68,6 +71,10 @@
         <mkdir dir="${build.dir}/dist/ext-doc-${version}/sample"/>
         <copy todir="${build.dir}/dist/ext-doc-${version}/sample">
             <fileset dir="sample" includes="*.*"/>
+        </copy>
+        <mkdir dir="${build.dir}/dist/ext-doc-${version}/lib"/>
+        <copy todir="${build.dir}/dist/ext-doc-${version}/lib">
+            <fileset dir="${lib.dir}" includes="${cli}"/>
         </copy>
         <copy todir="${build.dir}/dist/ext-doc-${version}" file="README.txt"/>
         <zip destfile="${build.dir}/ext-doc-${version}.zip" basedir="${build.dir}/dist"/>        
