@@ -14,7 +14,10 @@ public abstract class DocAttribute extends Doc
     public boolean isStatic; 
 
     public  int compareTo(DocAttribute anotherAttribute) {
-        return name.compareTo(anotherAttribute.name);
+        // name may be null or anotherAttribute may be null
+        // safe comparison
+        return (name!=null && anotherAttribute!=null)?
+                name.compareTo(anotherAttribute.name):0;
     }
 
 }

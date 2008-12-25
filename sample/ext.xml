@@ -1,213 +1,58 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <doc>
-	<source>
-        <file src="ext/source/core/Ext.js"/>
-		<file src="ext/source/adapter/ext-base.js"/>
-		<file src="ext/source/core/DomHelper.js"/>
-		<file src="ext/source/core/Template.js"/>
-		<file src="ext/source/core/DomQuery.js"/>
-		<file src="ext/source/util/Observable.js"/>
-		<file src="ext/source/core/EventManager.js"/>
-		<file src="ext/source/core/Element.js"/>
-		<file src="ext/source/core/Fx.js"/>
-		<file src="ext/source/core/CompositeElement.js"/>
-		<file src="ext/source/data/Connection.js"/>
-		<file src="ext/source/core/UpdateManager.js"/>
-		<file src="ext/source/util/Date.js"/>
-		<file src="ext/source/util/DelayedTask.js"/>
-		<file src="ext/source/util/TaskMgr.js"/>
-		<file src="ext/source/util/MixedCollection.js"/>
-		<file src="ext/source/util/JSON.js"/>
-		<file src="ext/source/util/Format.js"/>
-		<file src="ext/source/util/XTemplate.js"/>
-		<file src="ext/source/util/CSS.js"/>
-		<file src="ext/source/util/ClickRepeater.js"/>
-		<file src="ext/source/util/KeyNav.js"/>
-		<file src="ext/source/util/KeyMap.js"/>
-		<file src="ext/source/util/TextMetrics.js"/>
-		<file src="ext/source/dd/DDCore.js"/>
-		<file src="ext/source/dd/DragTracker.js"/>
-		<file src="ext/source/dd/ScrollManager.js"/>
-		<file src="ext/source/dd/Registry.js"/>
-		<file src="ext/source/dd/StatusProxy.js"/>
-		<file src="ext/source/dd/DragSource.js"/>
-		<file src="ext/source/dd/DropTarget.js"/>
-		<file src="ext/source/dd/DragZone.js"/>
-		<file src="ext/source/dd/DropZone.js"/>
-		<file src="ext/source/data/SortTypes.js"/>
-		<file src="ext/source/data/Record.js"/>
-		<file src="ext/source/data/StoreMgr.js"/>
-		<file src="ext/source/data/Store.js"/>
-		<file src="ext/source/data/SimpleStore.js"/>
-		<file src="ext/source/data/JsonStore.js"/>
-		<file src="ext/source/data/DataField.js"/>
-		<file src="ext/source/data/DataReader.js"/>
-		<file src="ext/source/data/DataProxy.js"/>
-		<file src="ext/source/data/MemoryProxy.js"/>
-		<file src="ext/source/data/HttpProxy.js"/>
-		<file src="ext/source/data/ScriptTagProxy.js"/>
-		<file src="ext/source/data/JsonReader.js"/>
-		<file src="ext/source/data/XmlReader.js"/>
-		<file src="ext/source/data/ArrayReader.js"/>
-		<file src="ext/source/data/Tree.js"/>
-		<file src="ext/source/data/GroupingStore.js"/>
-		<file src="ext/source/widgets/ComponentMgr.js"/>
-		<file src="ext/source/widgets/Component.js"/>
-		<file src="ext/source/widgets/Action.js"/>
-		<file src="ext/source/widgets/Layer.js"/>
-		<file src="ext/source/widgets/Shadow.js"/>
-		<file src="ext/source/widgets/BoxComponent.js"/>
-		<file src="ext/source/widgets/SplitBar.js"/>
-		<file src="ext/source/widgets/Container.js"/>
-		<file src="ext/source/widgets/layout/ContainerLayout.js"/>
-		<file src="ext/source/widgets/layout/FitLayout.js"/>
-		<file src="ext/source/widgets/layout/CardLayout.js"/>
-		<file src="ext/source/widgets/layout/AnchorLayout.js"/>
-		<file src="ext/source/widgets/layout/ColumnLayout.js"/>
-		<file src="ext/source/widgets/layout/BorderLayout.js"/>
-		<file src="ext/source/widgets/layout/FormLayout.js"/>
-		<file src="ext/source/widgets/layout/AccordionLayout.js"/>
-		<file src="ext/source/widgets/layout/TableLayout.js"/>
-		<file src="ext/source/widgets/layout/AbsoluteLayout.js"/>
-		<file src="ext/source/widgets/Viewport.js"/>
-		<file src="ext/source/widgets/Panel.js"/>
-		<file src="ext/source/widgets/Window.js"/>
-		<file src="ext/source/widgets/WindowManager.js"/>
-		<file src="ext/source/widgets/PanelDD.js"/>
-		<file src="ext/source/state/Provider.js"/>
-		<file src="ext/source/state/StateManager.js"/>
-		<file src="ext/source/state/CookieProvider.js"/>
-		<file src="ext/source/widgets/DataView.js"/>
-		<file src="ext/source/widgets/ColorPalette.js"/>
-		<file src="ext/source/widgets/DatePicker.js"/>
-		<file src="ext/source/widgets/TabPanel.js"/>
-		<file src="ext/source/widgets/Button.js"/>
-		<file src="ext/source/widgets/SplitButton.js"/>
-		<file src="ext/source/widgets/CycleButton.js"/>
-		<file src="ext/source/widgets/Toolbar.js"/>
-		<file src="ext/source/widgets/PagingToolbar.js"/>
-		<file src="ext/source/widgets/Resizable.js"/>
-		<file src="ext/source/widgets/Editor.js"/>
-		<file src="ext/source/widgets/MessageBox.js"/>
-		<file src="ext/source/widgets/tips/Tip.js"/>
-		<file src="ext/source/widgets/tips/ToolTip.js"/>
-		<file src="ext/source/widgets/tips/QuickTip.js"/>
-		<file src="ext/source/widgets/tips/QuickTips.js"/>
-		<file src="ext/source/widgets/tree/TreePanel.js"/>
-		<file src="ext/source/widgets/tree/TreeEventModel.js"/>
-		<file src="ext/source/widgets/tree/TreeSelectionModel.js"/>
-		<file src="ext/source/widgets/tree/TreeNode.js"/>
-		<file src="ext/source/widgets/tree/AsyncTreeNode.js"/>
-		<file src="ext/source/widgets/tree/TreeNodeUI.js"/>
-		<file src="ext/source/widgets/tree/TreeLoader.js"/>
-		<file src="ext/source/widgets/tree/TreeFilter.js"/>
-		<file src="ext/source/widgets/tree/TreeSorter.js"/>
-		<file src="ext/source/widgets/tree/TreeDropZone.js"/>
-		<file src="ext/source/widgets/tree/TreeDragZone.js"/>
-		<file src="ext/source/widgets/tree/TreeEditor.js"/>
-		<file src="ext/source/widgets/menu/Menu.js"/>
-		<file src="ext/source/widgets/menu/MenuMgr.js"/>
-		<file src="ext/source/widgets/menu/BaseItem.js"/>
-		<file src="ext/source/widgets/menu/TextItem.js"/>
-		<file src="ext/source/widgets/menu/Separator.js"/>
-		<file src="ext/source/widgets/menu/Item.js"/>
-		<file src="ext/source/widgets/menu/CheckItem.js"/>
-		<file src="ext/source/widgets/menu/Adapter.js"/>
-		<file src="ext/source/widgets/menu/DateItem.js"/>
-		<file src="ext/source/widgets/menu/ColorItem.js"/>
-		<file src="ext/source/widgets/menu/DateMenu.js"/>
-		<file src="ext/source/widgets/menu/ColorMenu.js"/>
-		<file src="ext/source/widgets/form/Field.js"/>
-		<file src="ext/source/widgets/form/TextField.js"/>
-		<file src="ext/source/widgets/form/TriggerField.js"/>
-		<file src="ext/source/widgets/form/TextArea.js"/>
-		<file src="ext/source/widgets/form/NumberField.js"/>
-		<file src="ext/source/widgets/form/DateField.js"/>
-		<file src="ext/source/widgets/form/Combo.js"/>
-		<file src="ext/source/widgets/form/Checkbox.js"/>
-		<file src="ext/source/widgets/form/CheckboxGroup.js"/>
-		<file src="ext/source/widgets/form/Radio.js"/>
-		<file src="ext/source/widgets/form/RadioGroup.js"/>
-		<file src="ext/source/widgets/form/Hidden.js"/>
-		<file src="ext/source/widgets/form/BasicForm.js"/>
-		<file src="ext/source/widgets/form/Form.js"/>
-		<file src="ext/source/widgets/form/FieldSet.js"/>
-		<file src="ext/source/widgets/form/HtmlEditor.js"/>
-		<file src="ext/source/widgets/form/TimeField.js"/>
-		<file src="ext/source/widgets/form/Label.js"/>
-		<file src="ext/source/widgets/form/Action.js"/>
-		<file src="ext/source/widgets/form/VTypes.js"/>
-		<file src="ext/source/widgets/grid/GridPanel.js"/>
-		<file src="ext/source/widgets/grid/GridView.js"/>
-		<file src="ext/source/widgets/grid/GroupingView.js"/>
-		<file src="ext/source/widgets/grid/ColumnDD.js"/>
-		<file src="ext/source/widgets/grid/ColumnSplitDD.js"/>
-		<file src="ext/source/widgets/grid/GridDD.js"/>
-		<file src="ext/source/widgets/grid/ColumnModel.js"/>
-		<file src="ext/source/widgets/grid/AbstractSelectionModel.js"/>
-		<file src="ext/source/widgets/grid/RowSelectionModel.js"/>
-		<file src="ext/source/widgets/grid/CellSelectionModel.js"/>
-		<file src="ext/source/widgets/grid/EditorGrid.js"/>
-		<file src="ext/source/widgets/grid/GridEditor.js"/>
-		<file src="ext/source/widgets/grid/PropertyGrid.js"/>
-		<file src="ext/source/widgets/grid/RowNumberer.js"/>
-		<file src="ext/source/widgets/grid/CheckboxSelectionModel.js"/>
-		<file src="ext/source/widgets/LoadMask.js"/>
-		<file src="ext/source/widgets/ProgressBar.js"/>
-		<file src="ext/source/widgets/Slider.js"/>
-		<file src="ext/source/widgets/StatusBar.js"/>
-		<file src="ext/source/util/History.js"/>
-        <file src="ext/air/src/FileProvider.js" />
-        <file src="ext/air/src/NativeObservable.js" />
-        <file src="ext/air/src/NativeWindow.js" />
-        <file src="ext/air/src/SystemTray.js" />
-        <file src="ext/air/src/NativeDD.js" />
-        <file src="ext/air/src/Sound.js" />
-        <file src="ext/air/src/SystemMenu.js" />
+
+    <!--
+
+    Source section (required)
+
+        Use <dir> to specify directory with JavaScript source files to be
+        processed. All subdirectories will be processed recursively.
+
+        Attributes:
+
+            src: (required) - source directory name
+            match: (optional) - wildcard for the files. Default: "*.js"
+            skipHidden: (optional) - True to skip processing files and
+                                                   directories with hidden attribute.
+                                                   Default: true.
+
+        Use <file> to specify one file.
+
+
+    Custom tags section(optional)
+
+            Tags to be added to the list of custom tags, for every
+            "documantable item" i.e. class, cfg, property, event.
+             Custom tag list is accessible in XSLT-template and has two
+              properties: title and value.
+
+                name: (required) tag name. ex: "author" => "@author"
+                title: (optional) title of custom tag
+                format: (optional) pattern string used for formatting value
+
+                Usage example:
+
+                XML: <tag name="author" title="Author"/>
+                JS:    /**
+                          * @class MyClass
+                          * @author I'm the
+                          * author
+                          */
+
+                  XSLT:
+                  <xsl:if test="customTags">
+                    <b><xsl:value-of select="customTags/title"/></b> :
+                    <xsl:value-of select="customTags/value"/>
+                  </xsl:if>
+
+                  Resulting HTML:
+                  <b>Author</b>:I'm the author
+
+        -->
+
+    <source>
+        <dir src="ext/source" match="*.js"/>
         <file src="sample.js" />
-
-          <!--<file src="ux/api/gMap.js" />-->
-
-          <!--<file src="ux/Element/Print.js" />-->
-
-          <!--<file src="ux/event/Broadcast.js" />-->
-
-          <!--<file src="ux/form/BotField.js" />-->
-
-          <!--<file src="ux/grid/filter/BooleanFilter.js" />-->
-          <!--<file src="ux/grid/filter/DateFilter.js" />-->
-          <!--<file src="ux/grid/filter/Filter.js" />-->
-          <!--<file src="ux/grid/filter/ListFilter.js" />-->
-          <!--<file src="ux/grid/filter/NumericFilter.js" />-->
-          <!--<file src="ux/grid/filter/StringFilter.js" />-->
-
-          <!--<file src="ux/grid/GridFilters.js" />-->
-
-          <!--<file src="ux/layout/Carousel.js" />-->
-          <!--<file src="ux/layout/RowFitLayout.js" />-->
-          <!--<file src="ux/layout/Template.js" />-->
-
-          <!--<file src="ux/menu/EditableItem.js" />-->
-          <!--<file src="ux/menu/ListMenu.js" />-->
-          <!--<file src="ux/menu/RangeMenu.js" />-->
-          <!--<file src="ux/menu/TreeMenu.js" />-->
-
-          <!--<file src="ux/panel/GMapPanel.js" />-->
-          <!--<file src="ux/panel/MenuPanel.js" />-->
-
-          <!--<file src="ux/reference/Slot.js" />-->
-
-          <!--<file src="ux/window/MessageWindow.js" />-->
-
-          <!--<file src="ux/Wiz/Card.js" />-->
-          <!--<file src="ux/Wiz/Header.js" />-->
-
-          <!--<file src="ux/ErrorHandler.js" />-->
-          <!--<file src="ux/Sound.js" />-->
-          <!--<file src="ux/Wiz.js" />-->
-
-          <!--<file src="other/sample.js" />-->
-
     </source>
     <tags>
         <tag name="author" title="Author"/>

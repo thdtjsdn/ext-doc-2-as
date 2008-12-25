@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<project name="ext-doc" default="all">
+<project name="ext-doc-1.0" default="all">
 
     <property environment="env"/>    
     <property file="build.properties"/>

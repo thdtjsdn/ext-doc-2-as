@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 
 /**
@@ -59,6 +60,9 @@ public class FileProcessor{
                     "ext:cls=\"{0}\">{1}</a>";
 
     private static final int DESCR_MAX_LENGTH = 117;
+
+    private static final String DEFAULT_MATCH = "*.js";
+    private static final boolean DEFAULT_SKIPHIDDEN = true;
 
     /**
      * Processes link content (between "{" and "}")
@@ -702,6 +706,26 @@ public class FileProcessor{
         }
     }
 
+    private void processDir(String dirName, String match,
+                                                                                 boolean skipHidden){
+        File file = new File(dirName);
+        if (file.exists() && !(skipHidden && file.isHidden())){
+            if (file.isDirectory()){
+                String[] children = file.list();
+                for(String child : children){
+                    processDir(dirName+File.separator+child, match, skipHidden);
+                }
+            }else{
+                Pattern pattern =
+                        Pattern.compile(StringUtils.wildcardToRegex(match));
+                if(pattern.matcher(dirName).matches()){
+                    processFile(dirName);
+                }                
+            }
+        }
+
+    }
+
     public void process(String fileName){
         try {
             File xmlFile = new File(new File(fileName).getAbsolutePath());
@@ -713,10 +737,21 @@ public class FileProcessor{
                     (extdoc.jsdoc.schema.Doc) unmarshaller.
                             unmarshal(fileInputStream);
             extdoc.jsdoc.schema.Source source = doc.getSource();
-            context.setCustomTags(doc.getTags().getTag());
+            extdoc.jsdoc.schema.Tags tags = doc.getTags();
+            if (tags!=null){
+                context.setCustomTags(doc.getTags().getTag());            
+            }
             List<extdoc.jsdoc.schema.File> files = source.getFile();
             for(extdoc.jsdoc.schema.File file: files){
                 processFile(xmlFile.getParent()+ File.separator +file.getSrc());
+            }
+            List<extdoc.jsdoc.schema.Dir> dirs = source.getDir();            
+            for(extdoc.jsdoc.schema.Dir dir: dirs){
+                String match = dir.getMatch();
+                Boolean skipHidden= dir.isSkipHidden();
+                processDir(xmlFile.getParent()+ File.separator +dir.getSrc(),
+                        match!=null?match:DEFAULT_MATCH, 
+                        skipHidden!=null?skipHidden:DEFAULT_SKIPHIDDEN);
             }
             showStatistics();
             fileInputStream.close();
