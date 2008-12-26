@@ -709,52 +709,66 @@ public class FileProcessor{
     private void processDir(String dirName, String match,
                                                                                  boolean skipHidden){
         File file = new File(dirName);
-        if (file.exists() && !(skipHidden && file.isHidden())){
-            if (file.isDirectory()){
-                String[] children = file.list();
-                for(String child : children){
-                    processDir(dirName+File.separator+child, match, skipHidden);
+        if (file.exists()){
+            if (!(skipHidden && file.isHidden())){
+                if (file.isDirectory()){
+                    String[] children = file.list();
+                    for(String child : children){
+                        processDir(dirName+File.separator+child, match, skipHidden);
+                    }
+                }else{
+                    Pattern pattern =
+                            Pattern.compile(StringUtils.wildcardToRegex(match));
+                    if(pattern.matcher(dirName).matches()){
+                        processFile(dirName);
+                    }
                 }
-            }else{
-                Pattern pattern =
-                        Pattern.compile(StringUtils.wildcardToRegex(match));
-                if(pattern.matcher(dirName).matches()){
-                    processFile(dirName);
-                }                
             }
+        }else{
+            // file not exists
+            logger.warning(
+                    MessageFormat.format("File {0} not found", dirName));
         }
 
     }
 
-    public void process(String fileName){
+    public void process(String fileName, String[] extraSrc){
         try {
-            File xmlFile = new File(new File(fileName).getAbsolutePath());
-            FileInputStream fileInputStream = new FileInputStream(xmlFile);
-            JAXBContext jaxbContext =
-                    JAXBContext.newInstance("extdoc.jsdoc.schema");
-            Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-            extdoc.jsdoc.schema.Doc doc =
-                    (extdoc.jsdoc.schema.Doc) unmarshaller.
-                            unmarshal(fileInputStream);
-            extdoc.jsdoc.schema.Source source = doc.getSource();
-            extdoc.jsdoc.schema.Tags tags = doc.getTags();
-            if (tags!=null){
-                context.setCustomTags(doc.getTags().getTag());            
+
+            // process project file
+            if(fileName!=null){
+                File xmlFile = new File(new File(fileName).getAbsolutePath());
+                FileInputStream fileInputStream = new FileInputStream(xmlFile);
+                JAXBContext jaxbContext =
+                        JAXBContext.newInstance("extdoc.jsdoc.schema");
+                Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+                extdoc.jsdoc.schema.Doc doc =
+                        (extdoc.jsdoc.schema.Doc) unmarshaller.
+                                unmarshal(fileInputStream);
+                extdoc.jsdoc.schema.Sources srcs = doc.getSources();
+                extdoc.jsdoc.schema.Tags tags = doc.getTags();
+                if (tags!=null){
+                    context.setCustomTags(doc.getTags().getTag());
+                }
+                List<extdoc.jsdoc.schema.Source> sources = srcs.getSource();                
+                for(extdoc.jsdoc.schema.Source src: sources){
+                    String match = src.getMatch();
+                    Boolean skipHidden= src.isSkipHidden();
+                    processDir(xmlFile.getParent()+ File.separator +src.getSrc(),
+                            match!=null?match:DEFAULT_MATCH,
+                            skipHidden!=null?skipHidden:DEFAULT_SKIPHIDDEN);
+                }
+                fileInputStream.close();
             }
-            List<extdoc.jsdoc.schema.File> files = source.getFile();
-            for(extdoc.jsdoc.schema.File file: files){
-                processFile(xmlFile.getParent()+ File.separator +file.getSrc());
+            
+            // process source files from command line
+            if(extraSrc!=null){
+                for(String src : extraSrc){
+                    processDir(src, DEFAULT_MATCH, DEFAULT_SKIPHIDDEN);
+                }
             }
-            List<extdoc.jsdoc.schema.Dir> dirs = source.getDir();            
-            for(extdoc.jsdoc.schema.Dir dir: dirs){
-                String match = dir.getMatch();
-                Boolean skipHidden= dir.isSkipHidden();
-                processDir(xmlFile.getParent()+ File.separator +dir.getSrc(),
-                        match!=null?match:DEFAULT_MATCH, 
-                        skipHidden!=null?skipHidden:DEFAULT_SKIPHIDDEN);
-            }
+
             showStatistics();
-            fileInputStream.close();
             createClassHierarchy();
             injectInherited();
             createPackageHierarchy();

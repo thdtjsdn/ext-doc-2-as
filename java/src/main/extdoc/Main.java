@@ -26,25 +26,54 @@ public class Main {
     public static void main(String[] args) {
 
         options = new Options();
-        options.addOption("h","help", false, "Show detailed help.");        
-        options.addOption("p","project", true, "Project XML file.");
-        options.addOption("o","output", true, "Directory where documentation should be created.");
-        options.addOption("t","template", true, "XML File containing template informaiton.");
+
+        Option project = OptionBuilder.withArgName("project")
+                .hasArg()
+                .withDescription("Project XML file.")
+                .withLongOpt("project")
+                .create('p');
+
+
+        Option output = OptionBuilder.withArgName("output")
+                .hasArg()
+                .withDescription("Directory where documentation should be created.")
+                .isRequired()
+                .withLongOpt("output")
+                .create('o');
+
+        Option template = OptionBuilder.withArgName("template")
+                .hasArg()
+                .withDescription("XML File containing template informaiton")
+                .isRequired()
+                .withLongOpt("template")
+                .create('t');
+
+        Option source = OptionBuilder.withArgName("source")
+                .hasArg()
+                .withDescription("Source files")
+                .hasOptionalArgs()
+                .withLongOpt("source")
+                .create('s');
+
+        options.addOption(project);
+        options.addOption(output);
+        options.addOption(template);
+        options.addOption(source);
 
         CommandLineParser parser = new PosixParser();
         try {
             CommandLine cmd = parser.parse( options, args);
-            if(cmd.hasOption("help")){
-                showHelp();
-            }else if(cmd.hasOption("project") &&
-                    cmd.hasOption("output") &&
-                    cmd.hasOption("template")){
+            if(cmd.hasOption("project")||cmd.hasOption("source")){
                 FileProcessor processor = new FileProcessor();
-                processor.process(cmd.getOptionValue("project"));
-                processor.saveToFolder(cmd.getOptionValue("output"),
-                        cmd.getOptionValue("template"));
+                processor.process(
+                        cmd.getOptionValue("project"),
+                        cmd.getOptionValues("source")
+                );
+                processor.saveToFolder(
+                    cmd.getOptionValue("output"),
+                    cmd.getOptionValue("template"));
             }else{
-                wrongCli("required arguments missing");                                
+                wrongCli("Project XML file or source files should be specified");    
             }
         } catch (ParseException e) {
             wrongCli(e.getMessage());
