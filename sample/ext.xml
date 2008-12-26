@@ -5,18 +5,17 @@
 
     Source section (required)
 
-        Use <dir> to specify directory with JavaScript source files to be
-        processed. All subdirectories will be processed recursively.
+        Use <source> to specify directory with JavaScript source files to be
+        processed or just one JS file. Directories are processed recursively.
 
         Attributes:
 
-            src: (required) - source directory name
+            src: (required) - source directory name or file name
             match: (optional) - wildcard for the files. Default: "*.js"
             skipHidden: (optional) - True to skip processing files and
                                                    directories with hidden attribute.
                                                    Default: true.
 
-        Use <file> to specify one file.
 
 
     Custom tags section(optional)
@@ -50,10 +49,10 @@
 
         -->
 
-    <source>
-        <dir src="ext/source" match="*.js"/>
-        <file src="sample.js" />
-    </source>
+    <sources>
+        <source src="ext/source" match="*.js"/>
+        <source src="sample.js" />
+    </sources>
     <tags>
         <tag name="author" title="Author"/>
         <tag name="version" title="Class Version"/>

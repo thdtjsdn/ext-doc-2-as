@@ -20,12 +20,15 @@ public class Main {
 
     private static void showHelp(){
         HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp( "java -jar ext-doc.jar", options);
+        formatter.printHelp( "java -jar ext-doc.jar [-p project] -o output -t template [-s source1 -s source2 ...]", options);
     }
 
     public static void main(String[] args) {
 
         options = new Options();
+
+        Option quiet = new Option("q", "quiet", false, "be extra quiet");
+        Option verbose = new Option("v", "verbose", false, "be extra verbose");
 
         Option project = OptionBuilder.withArgName("project")
                 .hasArg()
@@ -55,6 +58,8 @@ public class Main {
                 .withLongOpt("source")
                 .create('s');
 
+        options.addOption(quiet);
+        options.addOption(verbose);
         options.addOption(project);
         options.addOption(output);
         options.addOption(template);
@@ -65,6 +70,12 @@ public class Main {
             CommandLine cmd = parser.parse( options, args);
             if(cmd.hasOption("project")||cmd.hasOption("source")){
                 FileProcessor processor = new FileProcessor();
+
+                if(cmd.hasOption("quiet")){
+                    processor.setQuiet();
+                }else if (cmd.hasOption("verbose")){
+                    processor.setVerbose();
+                }                
                 processor.process(
                         cmd.getOptionValue("project"),
                         cmd.getOptionValues("source")

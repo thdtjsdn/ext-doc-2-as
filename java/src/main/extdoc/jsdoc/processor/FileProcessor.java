@@ -24,7 +24,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
-import java.util.logging.Logger;
+import java.util.logging.*;
 import java.util.regex.Pattern;
 
 
@@ -35,7 +35,9 @@ import java.util.regex.Pattern;
  */
 public class FileProcessor{
 
-    private static Logger logger = Logger.getLogger("extdoc.jsdoc.processor");
+    private final Logger logger;
+
+    private final Handler logHandler;
 
     private Context context = new Context();
 
@@ -63,6 +65,27 @@ public class FileProcessor{
 
     private static final String DEFAULT_MATCH = "*.js";
     private static final boolean DEFAULT_SKIPHIDDEN = true;
+
+    public FileProcessor() {
+        logger = Logger.getLogger("extdoc.jsdoc.processor");
+        logger.setUseParentHandlers(false);
+        logHandler = new ConsoleHandler();
+        logHandler.setFormatter(new Formatter() {            
+            public String format(LogRecord record) {
+                return record.getMessage() + "\n";
+            }
+        });
+        logger.addHandler(logHandler);
+    }
+
+    public void setVerbose(){
+        logger.setLevel(Level.FINE);
+        logHandler.setLevel(Level.FINE);
+    }
+
+    public void setQuiet(){
+        logger.setLevel(Level.OFF);
+    }
 
     /**
      * Processes link content (between "{" and "}")
@@ -511,7 +534,7 @@ public class FileProcessor{
             File file = new File(new File(fileName).getAbsolutePath());
             context.setCurrentFile(file);
             context.position = 0;
-            logger.info(
+            logger.fine(
                     MessageFormat.format("Processing: {0}",
                             context.getCurrentFile().fileName));
             BufferedReader reader =
@@ -700,9 +723,9 @@ public class FileProcessor{
     }
 
     private void showStatistics(){
-        logger.info("*** STATISTICS ***") ;
+        logger.fine("*** STATISTICS ***") ;
         for (Map.Entry<String, Integer> e : Comment.allTags.entrySet()){
-            logger.info(e.getKey() + ": " + e.getValue());        
+            logger.fine(e.getKey() + ": " + e.getValue());
         }
     }
 
@@ -745,18 +768,23 @@ public class FileProcessor{
                 extdoc.jsdoc.schema.Doc doc =
                         (extdoc.jsdoc.schema.Doc) unmarshaller.
                                 unmarshal(fileInputStream);
-                extdoc.jsdoc.schema.Sources srcs = doc.getSources();
                 extdoc.jsdoc.schema.Tags tags = doc.getTags();
                 if (tags!=null){
                     context.setCustomTags(doc.getTags().getTag());
                 }
-                List<extdoc.jsdoc.schema.Source> sources = srcs.getSource();                
-                for(extdoc.jsdoc.schema.Source src: sources){
-                    String match = src.getMatch();
-                    Boolean skipHidden= src.isSkipHidden();
-                    processDir(xmlFile.getParent()+ File.separator +src.getSrc(),
-                            match!=null?match:DEFAULT_MATCH,
-                            skipHidden!=null?skipHidden:DEFAULT_SKIPHIDDEN);
+                extdoc.jsdoc.schema.Sources srcs = doc.getSources();
+                if (srcs!=null){
+                    List<extdoc.jsdoc.schema.Source> sources = srcs.getSource();
+                    if(sources!=null){
+                        for(extdoc.jsdoc.schema.Source src: sources){
+                            String match = src.getMatch();
+                            Boolean skipHidden= src.isSkipHidden();
+                            processDir(
+                                xmlFile.getParent()+ File.separator +src.getSrc(),
+                                match!=null?match:DEFAULT_MATCH,
+                                skipHidden!=null?skipHidden:DEFAULT_SKIPHIDDEN);
+                        }
+                    }
                 }
                 fileInputStream.close();
             }
@@ -975,7 +1003,7 @@ public class FileProcessor{
 
             logger.info("*** SAVING FILES ***") ;
             for(DocClass docClass: context.getClasses()){
-                logger.info("Saving: " + docClass.className);
+                logger.fine("Saving: " + docClass.className);
                 String targetFileName = new StringBuilder()
                         .append(classTplTargetDir)
                         .append(File.separator)
