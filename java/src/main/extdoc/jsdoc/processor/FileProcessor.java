@@ -729,20 +729,21 @@ public class FileProcessor{
         }
     }
 
-    private void processDir(String dirName, String match,
-                                                                                 boolean skipHidden){
+    private Pattern filePattern 
+            = Pattern.compile(StringUtils.wildcardToRegex(DEFAULT_MATCH));
+    private boolean skipHidden = DEFAULT_SKIPHIDDEN;
+
+    private void processDir(String dirName){
         File file = new File(dirName);
         if (file.exists()){
             if (!(skipHidden && file.isHidden())){
                 if (file.isDirectory()){
                     String[] children = file.list();
                     for(String child : children){
-                        processDir(dirName+File.separator+child, match, skipHidden);
+                        processDir(dirName+File.separator+child);
                     }
                 }else{
-                    Pattern pattern =
-                            Pattern.compile(StringUtils.wildcardToRegex(match));
-                    if(pattern.matcher(dirName).matches()){
+                    if(filePattern.matcher(file.getName()).matches()){
                         processFile(dirName);
                     }
                 }
@@ -752,7 +753,6 @@ public class FileProcessor{
             logger.warning(
                     MessageFormat.format("File {0} not found", dirName));
         }
-
     }
 
     public void process(String fileName, String[] extraSrc){
@@ -777,12 +777,15 @@ public class FileProcessor{
                     List<extdoc.jsdoc.schema.Source> sources = srcs.getSource();
                     if(sources!=null){
                         for(extdoc.jsdoc.schema.Source src: sources){
-                            String match = src.getMatch();
-                            Boolean skipHidden= src.isSkipHidden();
-                            processDir(
-                                xmlFile.getParent()+ File.separator +src.getSrc(),
-                                match!=null?match:DEFAULT_MATCH,
-                                skipHidden!=null?skipHidden:DEFAULT_SKIPHIDDEN);
+                            String m = src.getMatch();
+                            Boolean sh = src.isSkipHidden();
+                            skipHidden = sh!=null?sh:DEFAULT_SKIPHIDDEN;
+                            filePattern = Pattern.compile(
+                                    StringUtils.wildcardToRegex(
+                                            m!=null?m:DEFAULT_MATCH)); 
+                            processDir(xmlFile.getParent()+
+                                    File.separator+
+                                    src.getSrc());
                         }
                     }
                 }
@@ -792,7 +795,7 @@ public class FileProcessor{
             // process source files from command line
             if(extraSrc!=null){
                 for(String src : extraSrc){
-                    processDir(src, DEFAULT_MATCH, DEFAULT_SKIPHIDDEN);
+                    processDir(src);
                 }
             }
 
