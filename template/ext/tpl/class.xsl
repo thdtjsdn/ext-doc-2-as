@@ -171,6 +171,7 @@
                                             <xsl:otherwise>void</xsl:otherwise>
                                         </xsl:choose>
                                         <div class="mdesc">
+                                            <xsl:call-template name="custom-tags"/>
                                             <div class="short">
                                                 <xsl:call-template name="check-if-static"/>
                                                 <xsl:value-of select="description/shortDescr"/>
@@ -179,7 +180,6 @@
                                                 <xsl:call-template name="check-if-static"/>
                                                 <xsl:value-of select="description/longDescr" disable-output-escaping="yes"/>
                                                 <xsl:call-template name="method-params-details"/>
-                                                <xsl:if test="customTags"><b><xsl:value-of select="customTags/title"/></b> : <xsl:value-of select="customTags/value"/></xsl:if>
                                             </div>
                                         </div>
                                     </td>
@@ -383,7 +383,7 @@
             <xsl:for-each select="customTags">
             <tr>
                 <td class="label"><xsl:value-of select="title"/>:</td>
-                <td class="hd-info"><xsl:value-of select="value"/></td>
+                <td class="hd-info"><xsl:value-of select="value" disable-output-escaping="yes"/></td>
             </tr>
             </xsl:for-each>
         </xsl:if>
@@ -391,9 +391,14 @@
 
     <xsl:template name="custom-tags">
         <xsl:if test="customTags">
-            <xsl:for-each select="customTags">
-                <xsl:value-of select="value" disable-output-escaping="yes"/>
-            </xsl:for-each>
+            <table>
+                <xsl:for-each select="customTags">
+                    <tr>
+                        <td class="label"><xsl:value-of select="title"/>:</td>
+                        <td class="hd-info"><xsl:value-of select="value" disable-output-escaping="yes"/></td>
+                    </tr>
+                </xsl:for-each>
+            </table>
         </xsl:if>
     </xsl:template>
 

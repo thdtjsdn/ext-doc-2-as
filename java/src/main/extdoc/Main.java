@@ -11,7 +11,7 @@ import org.apache.commons.cli.*;
 
 public class Main {
 
-    private static Options options = new Options();
+    private static Options options = null;
 
     private static void wrongCli(String msg){
         System.err.println("Wrong command line arguments: "+ msg);
@@ -20,7 +20,7 @@ public class Main {
 
     private static void showHelp(){
         HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp( "java -jar ext-doc.jar [-p project] -o output -t template [-s source1 -s source2 ...]", options);
+        formatter.printHelp( "java -jar ext-doc.jar [-p project] -o output [-s source1 -s source2 ...]", options);
     }
 
     public static void main(String[] args) {

@@ -7,9 +7,16 @@ Ext.namespace("SamplePackage");
 /**
  * @class SamplePackage.SampleClass
  * @extends Ext.Panel
- * This is a sample class
+ * This is a sample class <br/>
+ * {@link SamplePackage.SampleClass#methodOne this is method one} <br/>
+ * {@link SamplePackage.SampleClass#methodOne} <br/>
+ * {@link #methodOne another link} <br/>
+ * {@link #methodOne} <br/>
+ * {@link SamplePackage.SampleClass} <br/>
+ * {@link SamplePackage.SampleClass sample class} <br/>
  * @author oxymoron
- * @version 1.0.101 
+ * @version 1.0.101
+ * @demo test 
  */
 SamplePackage.SampleClass = Ext.extend(Ext.Panel, {
 
@@ -54,13 +61,16 @@ SamplePackage.SampleClass = Ext.extend(Ext.Panel, {
          * @param {String} param1 Parameter name
          * @param {String} param2 (Optional) Optional parameter
          * @return {Number} Return value
-         * @note This is a custom tag supported since version 1.0.101
+         * @author oxymoron
+         * @version 1.0
          */
         this.methodTwo = function(){};
 
         /**
          * This is a method declaration with specified method name
          * @method methodThree
+         * @author user
+         * @version 1.1
          */
         var mThree = function(){};
         this.methodThree = mThree;

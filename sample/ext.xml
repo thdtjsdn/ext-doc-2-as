@@ -51,11 +51,13 @@
 
     <sources>
         <source src="ext/source" match="*.js"/>
+        <!--<source src="ext" match="Ext*.js"/>-->
         <source src="sample.js" />
     </sources>
     <tags>
         <tag name="author" title="Author"/>
-        <tag name="version" title="Class Version"/>
+        <tag name="version" title="Version"/>
         <tag name="note" format="&lt;i&gt;NOTE: {0}&lt;/i&gt;"/>
+        <tag name="demo" title="Demo" format="&lt;a href=&quot;{0}&quot;&gt;{0}&lt;/a&gt;" />        
     </tags>
 </doc>
