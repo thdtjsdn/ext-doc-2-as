@@ -16,7 +16,9 @@ public abstract class DocAttribute extends Doc
     public  int compareTo(DocAttribute anotherAttribute) {
         // name may be null or anotherAttribute may be null
         // safe comparison
-        return (name!=null && anotherAttribute!=null)?
+        return (name!=null && 
+                anotherAttribute!=null &&
+                anotherAttribute.name!=null)?
                 name.compareTo(anotherAttribute.name):0;
     }
 
