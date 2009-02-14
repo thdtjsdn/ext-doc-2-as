@@ -155,7 +155,7 @@ class Context {
                 sameNameCount++;
             }
         }
-        int lastDot = docFile.fileName.indexOf('.');
+        int lastDot = docFile.fileName.lastIndexOf('.');
         String name = lastDot!=-1?
                 docFile.fileName.substring(0, lastDot):docFile.fileName;
         docFile.targetFileName = sameNameCount>0?
