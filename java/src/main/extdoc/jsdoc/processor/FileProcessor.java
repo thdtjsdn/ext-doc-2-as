@@ -390,8 +390,9 @@ public class FileProcessor{
         MemberTag memberTag = comment.tag("@member");
 
         // should be first because @member may redefine class
-        method.className = context.getCurrentClass().className;
-        method.shortClassName = context.getCurrentClass().shortClassName;
+        DocClass doc = context.getCurrentClass();
+        method.className = doc!=null?doc.className:null;
+        method.shortClassName = doc!=null?doc.shortClassName:null;
         method.name = StringUtils.separatePackage(extraLine)[1];
         if (methodTag!=null){
             if (!methodTag.text().isEmpty()){
