@@ -8,6 +8,7 @@ Ext.namespace("SamplePackage");
  * @class SamplePackage.SampleClass
  * @extends Ext.Panel
  * This is a sample class <br/>
+ * UTF-8 Check: Проверка поддержки utf-8 <br/>
  * {@link SamplePackage.SampleClass#methodOne this is method one} <br/>
  * {@link SamplePackage.SampleClass#methodOne} <br/>
  * {@link #methodOne another link} <br/>
