@@ -539,7 +539,8 @@ public class FileProcessor{
                     MessageFormat.format("Processing: {0}",
                             context.getCurrentFile().fileName));
             BufferedReader reader =
-                    new BufferedReader(new FileReader(file));
+                    new BufferedReader(new InputStreamReader
+                            (new FileInputStream(file), "UTF8"));
             int numRead;
             State state = State.CODE;
             ExtraState extraState = ExtraState.SKIP;            
