@@ -66,6 +66,8 @@ public class FileProcessor{
     private static final String DEFAULT_MATCH = "*.js";
     private static final boolean DEFAULT_SKIPHIDDEN = true;
 
+    private static final String ENCODING = "UTF8";
+
     public FileProcessor() {
         logger = Logger.getLogger("extdoc.jsdoc.processor");
         logger.setUseParentHandlers(false);
@@ -540,7 +542,7 @@ public class FileProcessor{
                             context.getCurrentFile().fileName));
             BufferedReader reader =
                     new BufferedReader(new InputStreamReader
-                            (new FileInputStream(file), "UTF8"));
+                            (new FileInputStream(file), ENCODING));
             int numRead;
             State state = State.CODE;
             ExtraState extraState = ExtraState.SKIP;            
@@ -852,7 +854,8 @@ public class FileProcessor{
                              StringBuilder suffix){
         try {
             BufferedReader reader =
-                        new BufferedReader(new FileReader(wrapper));
+                    new BufferedReader(new InputStreamReader
+                            (new FileInputStream(wrapper), ENCODING));
             int numRead;
             while((numRead=reader.read())!=-1 &&
                     !StringUtils.endsWith(prefix, WRAPPER_CODE_MARKER)){
@@ -884,7 +887,8 @@ public class FileProcessor{
                         .toString());
                 StringBuilder buffer = new StringBuilder();
                 BufferedReader reader =
-                    new BufferedReader(new FileReader(docFile.file));
+                    new BufferedReader(new InputStreamReader
+                            (new FileInputStream(docFile.file), ENCODING));
                 // current character
                 int numRead;
                 // position in file
@@ -902,8 +906,10 @@ public class FileProcessor{
                     }
                     buffer.append(ch);
                 }
-                buffer.append(suffix);
-                Writer out = new BufferedWriter(new FileWriter(dst));
+                buffer.append(suffix);               
+                Writer out =
+                        new BufferedWriter(new OutputStreamWriter
+                                (new FileOutputStream(dst), ENCODING));
                 out.write(buffer.toString());
                 out.close();
             } catch (IOException e) {
