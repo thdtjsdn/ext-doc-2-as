@@ -17,7 +17,8 @@ Ext.namespace("SamplePackage");
  * {@link SamplePackage.SampleClass sample class} <br/>
  * @author oxymoron
  * @version 1.0.101
- * @demo test 
+ * @demo test
+ * @brick brick-icon
  */
 SamplePackage.SampleClass = Ext.extend(Ext.Panel, {
 

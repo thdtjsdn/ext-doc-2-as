@@ -39,6 +39,7 @@ public class TreePackage implements Comparable<TreePackage>{
             treeClass.shortClassName = docClass.shortClassName;
             treeClass.singleton = docClass.singleton;
             treeClass.component = docClass.component;
+            treeClass.customTags = docClass.customTags;
             classes.add(treeClass);
         }else{
             int i=0;

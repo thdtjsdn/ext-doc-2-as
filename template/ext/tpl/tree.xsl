@@ -8,6 +8,9 @@
         <xsl:for-each select="//classes">
 			<xsl:variable name="icon">
                     <xsl:choose>
+                    	<xsl:when test="customTags[title='brick-icon']">
+            	            <xsl:value-of select="customTags[title='brick-icon']/value"/>
+                    	</xsl:when>
                         <xsl:when test="singleton='true'">icon-static</xsl:when>
                         <xsl:when test="component='true'">icon-cmp</xsl:when>
                         <xsl:otherwise>icon-cls</xsl:otherwise>
@@ -27,6 +30,9 @@
 			<xsl:for-each select="classes">			
                 <xsl:variable name="icon">
                     <xsl:choose>
+                        <xsl:when test="customTags[title='brick-icon']">
+            	            <xsl:value-of select="customTags[title='brick-icon']/value"/>
+                    	</xsl:when>
                         <xsl:when test="singleton='true'">icon-static</xsl:when>
                         <xsl:when test="component='true'">icon-cmp</xsl:when>
                         <xsl:otherwise>icon-cls</xsl:otherwise>
