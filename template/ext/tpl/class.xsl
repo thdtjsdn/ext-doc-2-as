@@ -3,23 +3,9 @@
   <!ENTITY nbsp "&#160;">
 ]>        
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:ext="http://www.extjs.com">
-<xsl:output method="html" indent="no" encoding="UTF-8"/>
+<xsl:output method="html" indent="no"/>
     <xsl:template match="/docClass">        
         <div class="body-wrap">
-            <div class="top-tools">
-                <a class="inner-link" href="#{className}-props">
-                <img src="resources/images/default/s.gif" class="item-icon icon-prop"/>Properties</a><xsl:text>&#x0D;</xsl:text>
-                <a class="inner-link" href="#{className}-methods">
-			    <img src="resources/images/default/s.gif" class="item-icon icon-method"/>Methods</a><xsl:text>&#x0D;</xsl:text>
-		        <a class="inner-link" href="#{className}-events">
-			    <img src="resources/images/default/s.gif" class="item-icon icon-event"/>Events</a><xsl:text>&#x0D;</xsl:text>
-                <xsl:if test="cfgs">
-                    <a class="inner-link" href="#{className}-configs">
-                    <img src="resources/images/default/s.gif" class="item-icon icon-config"/>Config Options</a><xsl:text>&#x0D;</xsl:text>
-                </xsl:if>
-                <a class="bookmark" href="../docs/?class={className}">
-			    <img src="resources/images/default/s.gif" class="item-icon icon-fav"/>Direct Link</a><xsl:text>&#x0D;</xsl:text>
-	        </div>
             <xsl:if test="superClasses">
                 <xsl:call-template name="super-classes"/>
             </xsl:if>
@@ -34,7 +20,14 @@
                         </xsl:choose>
                     </td>
                 </tr>
-                <tr><td class="label">Defined In:</td><td class="hd-info"><a href="source/{href}"><xsl:value-of select="definedIn"/></a></td></tr>
+                
+                <tr><td class="label">Defined In:</td><td class="hd-info">
+                <xsl:for-each select="definedIn">
+                  <xsl:value-of select="."/>
+                  <xsl:if test="position()!=last()"><xsl:text>,&#x0D;</xsl:text></xsl:if>
+                </xsl:for-each>
+                </td></tr>
+                
                 <tr><td class="label">Class:</td><td class="hd-info"><a href="source/{href}"><xsl:value-of select="shortClassName"/></a></td></tr>
                 <xsl:if test="subClasses">
                     <xsl:call-template name="sub-classes"/>
