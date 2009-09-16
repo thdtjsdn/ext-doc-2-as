@@ -179,7 +179,11 @@ DocPanel = Ext.extend(Ext.Panel, {
     },
 
     directLink : function(){
-        Ext.Msg.prompt('Direct Link', 'The Direct Link', Ext.emptyFn, this, false, document.location.href+'?class='+this.cclass);
+        var link = String.format(
+            "<a href=\"{0}\" target=\"_blank\">{0}</a>",
+            document.location.href+'?class='+this.cclass
+        );
+        Ext.Msg.alert('Direct Link to ' + this.cclass,link);
     },
     
     scrollToMember : function(member){
