@@ -16,7 +16,7 @@ public class DocClass extends Doc{
     public String className;
     public String shortClassName;
     public String packageName;
-    public String definedIn;
+    public List<String> definedIn = new ArrayList<String>();
     public boolean singleton;
     public String description;
     public String parentClass;

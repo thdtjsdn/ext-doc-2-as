@@ -109,6 +109,13 @@ class Context {
         docMethod.positionInFile = lastCommentPosition;
         docMethod.id = "method-" + docMethod.className +'-' + docMethod.name;
         docMethod.href = currentFile.targetFileName + '#' + docMethod.id;
+        for(DocMethod method:methods){
+                if(method.id.equals(docMethod.id)){
+                        methods.remove(method);
+                        currentFile.docs.remove(method);
+                        break;
+                }
+        }
         currentFile.docs.add(docMethod);
         methods.add(docMethod);
     }
@@ -133,6 +140,10 @@ class Context {
         this.customTags = customTags;
     }
 
+     public void setCurrentClass(DocClass currentClass){
+        this.currentClass=currentClass;
+    }
+    
     public DocClass getCurrentClass(){
         return currentClass;        
     }

@@ -28,6 +28,7 @@ import java.util.logging.*;
 import java.util.regex.Pattern;
 
 
+
 /**
  * User: Andrey Zubkov
  * Date: 25.10.2008
@@ -43,8 +44,7 @@ public class FileProcessor{
 
     private final static String OUT_FILE_EXTENSION = "html";
     private final static boolean GENERATE_DEBUG_XML = false;
-    private final static String COMPONENT_NAME =
-            "Ext.Component";
+    private final static String COMPONENT_NAME = "Ext.Component";
     private final static String DEFAULT_TYPE = "Object";
 
     private static final String START_LINK = "{@link";    
@@ -72,7 +72,7 @@ public class FileProcessor{
         logger = Logger.getLogger("extdoc.jsdoc.processor");
         logger.setUseParentHandlers(false);
         logHandler = new ConsoleHandler();
-        logHandler.setFormatter(new Formatter() {            
+        logHandler.setFormatter(new Formatter() {
             public String format(LogRecord record) {
                 return record.getMessage() + "\n";
             }
@@ -94,38 +94,38 @@ public class FileProcessor{
      * @param text Content, ex: "Ext.DomQuery#select"
      * @return Array of 2 Strings: long and short versions
      */
-    private String[] processLink(String text){
-        StringUtils.ClsAttrName res = StringUtils.processLink(text);
-        String longText, shortText;
-        if (res.attr.isEmpty()){
-           // class reference
-            String cls = res.cls;
-            String name = res.name.isEmpty()?res.cls:res.name;
-            longText =
-                    MessageFormat.format(CLASS_REFERENCE_TPL, cls, name);
-            shortText = name;
-        }else{
-           // attribute reference
-            String cls = res.cls.isEmpty()?
-                    context.getCurrentClass().className:res.cls;
-            String attr = res.attr;
-            String name;
-            if (res.name.isEmpty()){
-                if (res.cls.isEmpty()){
-                    name = res.attr;
-                }else{
-                    name = cls + '.' + res.attr;
-                }
-            }else{
-                name = res.name;
-            }
-            longText =
-                    MessageFormat.format(
-                            MEMBER_REFERENCE_TPL, cls, attr, name);
-            shortText = name;
-        }
-        return new String[]{longText, shortText};
-    }
+    private String[] processLink(String text) {
+         StringUtils.ClsAttrName res = StringUtils.processLink(text);
+         String longText, shortText;
+         if (res.attr.isEmpty()) {
+             // class reference
+             String cls = res.cls;
+             String name = res.name.isEmpty() ? res.cls : res.name;
+             longText = MessageFormat.format(CLASS_REFERENCE_TPL, cls, name);
+             shortText = name;
+         } else {
+             // attribute reference
+             String cls = res.cls.isEmpty() ? context.getCurrentClass().className
+                     : res.cls;
+             String attr = res.attr;
+             String name;
+             if (res.name.isEmpty()) {
+                 if (res.cls.isEmpty()) {
+                     name = res.attr;
+                 } else {
+                     name = cls + '.' + res.attr;
+                 }
+             } else {
+                 name = res.name;
+             }
+             longText = MessageFormat.format(MEMBER_REFERENCE_TPL, cls, attr,
+                     name);
+             shortText = name;
+         }
+         return new String[] { longText, shortText };
+     }
+
+
 
     private Description inlineLinks(String content){
         return inlineLinks(content, false);
@@ -133,49 +133,52 @@ public class FileProcessor{
 
     /**
      * Replaces inline tag @link to actual html links and returns shot and/or
-     *  long versions.
-     * @param cnt description content
-     * @param alwaysGenerateShort forces to generate short version for
-     * Methods and events
+     * long versions.
+     *
+     * @param cnt
+     *            description content
+     * @param alwaysGenerateShort
+     *            forces to generate short version for Methods and events
      * @return short and long versions
      */
-    private Description inlineLinks(String cnt,
-                                                                boolean alwaysGenerateShort){
-
-        if (cnt==null) return null;
+    private Description inlineLinks(String cnt, boolean alwaysGenerateShort) {
+        if (cnt == null) {
+            return null;
+        }
         String content = StringUtils.highlightCode(cnt);
         LinkStates state = LinkStates.READ;
         StringBuilder sbHtml = new StringBuilder();
         StringBuilder sbText = new StringBuilder();
-        StringBuilder buffer = new StringBuilder();        
-        for (int i=0;i<content.length();i++){
+        StringBuilder buffer = new StringBuilder();
+        for (int i = 0; i < content.length(); i++) {
             char ch = content.charAt(i);
-            switch (state){
-                case READ:
-                    if (StringUtils.endsWith(buffer, START_LINK)){
-                        String substr = buffer.substring(
-                                            0, buffer.length() - START_LINK.length());
-                        sbHtml.append(substr);
-                        sbText.append(substr);
-                        buffer.setLength(0);
-                        state = LinkStates.LINK;
-                        break;
-                    }
-                    buffer.append(ch);
+            switch (state) {
+            case READ:
+                if (StringUtils.endsWith(buffer, START_LINK)) {
+                    String substr = buffer.substring(0, buffer.length()
+                            - START_LINK.length());
+                    sbHtml.append(substr);
+                    sbText.append(substr);
+                    buffer.setLength(0);
+                    state = LinkStates.LINK;
                     break;
-                case LINK:
-                    if(ch=='}'){
-                        String[] str = processLink(buffer.toString()); 
-                        sbHtml.append(str[0]);
-                        sbText.append(str[1]);
-                        buffer.setLength(0);
-                        state = LinkStates.READ;
-                        break;
-                    }
-                    buffer.append(ch);
+                }
+                buffer.append(ch);
+                break;
+            case LINK:
+                if (ch == '}') {
+                    String[] str = processLink(buffer.toString());
+                    sbHtml.append(str[0]);
+                    sbText.append(str[1]);
+                    buffer.setLength(0);
+                    state = LinkStates.READ;
                     break;
+                }
+                buffer.append(ch);
+                break;
             }
         }
+
 
         // append remaining
         sbHtml.append(buffer);
@@ -183,62 +186,60 @@ public class FileProcessor{
 
         String sbString = sbText.toString().replaceAll("<\\S*?>","");        
 
-        Description description = new Description();
-        description.longDescr =  sbHtml.toString();
-        if(alwaysGenerateShort){
+               Description description = new Description();
+        description.longDescr = sbHtml.toString();
+        if (alwaysGenerateShort) {
             description.hasShort = true;
-            description.shortDescr =
-                sbString.length()>DESCR_MAX_LENGTH?
-                        new StringBuilder()
-                            .append(sbString.substring(0, DESCR_MAX_LENGTH))
-                            .append("...").toString()
-                :sbString;
-        }else{
-            description.hasShort = sbString.length()>DESCR_MAX_LENGTH;
-            description.shortDescr =
-                description.hasShort?
-                        new StringBuilder()
-                            .append(sbString.substring(0, DESCR_MAX_LENGTH))
-                            .append("...").toString()
-                :null;
+            description.shortDescr = sbString.length() > DESCR_MAX_LENGTH ? new StringBuilder()
+                    .append(sbString.substring(0, DESCR_MAX_LENGTH)).append(
+                            "...").toString()
+                    : sbString;
+        } else {
+            description.hasShort = sbString.length() > DESCR_MAX_LENGTH;
+            description.shortDescr = description.hasShort ? new StringBuilder()
+                    .append(sbString.substring(0, DESCR_MAX_LENGTH)).append(
+                            "...").toString() : null;
         }
         return description;
-    }
+    }  
 
 
     /**
-     *  Read params from list of param tags and add them to list of params
-     *  Just simplifies param processing for class, method and event
-     * @param paramTags tags
-     * @param  params target list of params
+     * Read params from list of param tags and add them to list of params Just
+     * simplifies param processing for class, method and event
+     *
+     * @param paramTags
+     *            tags
+     * @param params
+     *            target list of params
      */
-    private void readParams(List<ParamTag> paramTags,
-                                                        List<Param> params){
-        for(ParamTag paramTag: paramTags){
-            Param param = new Param();
-            param.name = paramTag.getParamName();
-            param.type = paramTag.getParamType();
-            Description descr = inlineLinks(paramTag.getParamDescription());
-            param.description = descr!=null?descr.longDescr:null;
-            param.optional = paramTag.isOptional();
-            params.add(param);
-        }
+    private void readParams(List<ParamTag> paramTags, List<Param> params) {
+            for (ParamTag paramTag : paramTags) {
+                    Param param = new Param();
+                    param.name = paramTag.getParamName();
+                    param.type = paramTag.getParamType();
+                    Description descr = inlineLinks(paramTag.getParamDescription());
+                    param.description = descr != null ? descr.longDescr : null;
+                    param.optional = paramTag.isOptional();
+                    params.add(param);
+            }
     }
 
-    private void injectCustomTags(Doc doc, Comment comment){
-        for(extdoc.jsdoc.schema.Tag customTag: context.getCustomTags()){
+
+    private void injectCustomTags(Doc doc, Comment comment) {
+        for (extdoc.jsdoc.schema.Tag customTag : context.getCustomTags()) {
             Tag tag = comment.tag('@' + customTag.getName());
-            if(tag!=null){
+            if (tag != null) {
                 DocCustomTag t = new DocCustomTag();
                 String title = customTag.getTitle();
                 String format = customTag.getFormat();
                 t.title = title;
-                t.value = format!=null?
-                        MessageFormat.format(format, tag.text()):tag.text();
+                t.value = format != null ? MessageFormat.format(format, tag.text()) : tag.text();
                 doc.customTags.add(t);
             }
         }
     }
+
    
 
     /**
@@ -257,56 +258,78 @@ public class FileProcessor{
         Tag namespaceTag = comment.tag("@namespace");
 
         cls.className = classTag.getClassName();
-        if (namespaceTag!=null){
-            cls.packageName = namespaceTag.text();
-            cls.shortClassName = StringUtils.separateByLastDot(cls.className)[1];
-        }else{
-            String[] str = StringUtils.separatePackage(cls.className);
-            cls.packageName = str[0];
-            cls.shortClassName = str[1];
+        boolean found = false;
+        for (DocClass d : context.getClasses()) {
+            if (d.className.equals(cls.className)) {
+                context.setCurrentClass(d);
+                cls = d;
+                found = true;
+                break;
+            }
         }
-        cls.definedIn = context.getCurrentFile().fileName;
-        cls.singleton = singletonTag!=null;        
-        cls.parentClass =
-                (extendsTag!=null)?extendsTag.getClassName():null;
+        if (!found) {
+            context.addDocClass(cls);
+        }
+
+        if (cls.packageName == null) {
+              if (namespaceTag != null) {
+                  cls.packageName = namespaceTag.text();
+                  cls.shortClassName = StringUtils
+                          .separateByLastDot(cls.className)[1];
+              } else {
+                  String[] str = StringUtils.separatePackage(cls.className);
+                  cls.packageName = str[0];
+                  cls.shortClassName = str[1];
+              }
+          }
+
+        cls.definedIn.add(context.getCurrentFile().fileName);
+        if (!cls.singleton) {
+              cls.singleton = singletonTag != null;
+        }
+        if (cls.parentClass == null) {
+            cls.parentClass = (extendsTag != null) ? extendsTag.getClassName() : null;
+        }       
 
         // Skip private classes
-        if (comment.hasTag("@private")
-                || comment.hasTag("@ignore")) {
+        if (comment.hasTag("@private") || comment.hasTag("@ignore")) {
             cls.hide = true;
-
-        }        
-        context.addDocClass(cls);
+        }
 
         // process inline links after class added to context
-        // DEFCT17
-        cls.hasConstructor = constructorTag!=null;
-        if (constructorTag!=null){
-            cls.constructorDescription = inlineLinks(constructorTag.text(), true);
-            readParams(paramTags, cls.params);
-        }
+       // DEFCT17
+       if (!cls.hasConstructor) {
+           cls.hasConstructor = constructorTag != null;
+           if (constructorTag != null) {
+               cls.constructorDescription = inlineLinks(constructorTag.text(),
+                       true);
+               readParams(paramTags, cls.params);
+           }
+       }
 
-        String description = classTag.getClassDescription();
-        if (description==null && extendsTag!=null){
-            description = extendsTag.getClassDescription();
+        if (cls.description == null) {
+            String description = classTag.getClassDescription();
+            if (description == null && extendsTag != null) {
+                description = extendsTag.getClassDescription();
+            }
+            Description descr = inlineLinks(description);
+            cls.description = descr != null ? descr.longDescr : null;
         }
-        Description descr = inlineLinks(description);
-        cls.description = descr!=null?descr.longDescr:null;
-
         // Process cfg declared inside class definition
         // goes after global className set
-        List<CfgTag> innerCfgs =  comment.tags("@cfg");
-        for (CfgTag innerCfg: innerCfgs){
+        List<CfgTag> innerCfgs = comment.tags("@cfg");
+        for (CfgTag innerCfg : innerCfgs) {
             DocCfg cfg = getDocCfg(innerCfg);
             context.addDocCfg(cfg);
         }
 
-        injectCustomTags(cls, comment);
+        //injectCustomTags(cls, comment);
     }
 
     /**
      * Helper method to process cfg in separate comment and in class
      * definition
+     * @return cfg
      */
     private DocCfg getDocCfg(CfgTag tag){
         DocCfg cfg = new DocCfg();
@@ -319,6 +342,7 @@ public class FileProcessor{
                 context.getCurrentClass().shortClassName;
         return cfg;
     }
+
 
     /**
      * Process cfg
@@ -342,8 +366,9 @@ public class FileProcessor{
      */
     private void processProperty(Comment comment,String extraLine){
         // Skip private
-        if (comment.hasTag("@private")
-                || comment.hasTag("@ignore")) return;
+        if (comment.hasTag("@private") || comment.hasTag("@ignore")) {
+            return;
+        }
 
         
         DocProperty property = new DocProperty();
@@ -356,7 +381,7 @@ public class FileProcessor{
         if (propertyTag!=null){
             String propertyName = propertyTag.getPropertyName();
             if (propertyName!=null && propertyName.length()>0){
-                property.name = propertyName;    
+                property.name = propertyName;
             }
             String propertyDescription = propertyTag.getPropertyDescription();
             if (propertyDescription!=null && propertyDescription.length()>0){
@@ -379,9 +404,9 @@ public class FileProcessor{
      */
     private void processMethod(Comment comment, String extraLine){
         // Skip private
-        if (comment.hasTag("@private")
-                || comment.hasTag("@ignore")) return;
-
+        if (comment.hasTag("@private") || comment.hasTag("@ignore")) {
+            return;
+        }
 
         DocMethod method = new DocMethod();
 
@@ -438,10 +463,10 @@ public class FileProcessor{
      */
     private void processEvent(Comment comment){
         // Skip private
-        if (comment.hasTag("@private")
-                || comment.hasTag("@ignore")) return;
+        if (comment.hasTag("@private")  || comment.hasTag("@ignore")) {
+            return;
+        }
 
-        
         DocEvent event = new DocEvent();
         EventTag eventTag = comment.tag("@event");
         List<ParamTag> paramTags = comment.tags("@param");
@@ -456,7 +481,8 @@ public class FileProcessor{
     }
 
     enum CommentType{
-        CLASS, CFG, PROPERTY, METHOD, EVENT}
+        CLASS, CFG, PROPERTY, METHOD, EVENT
+    }
 
     static CommentType resolveCommentType(Comment comment){
         return resolveCommentType(comment, "", "");
@@ -527,98 +553,95 @@ public class FileProcessor{
     private boolean isWhite(char ch){
         return !Character.isLetterOrDigit(ch) && ch!='.' && ch!='_';
     }
-
     /**
      * Processes one file with state machine
-     * @param fileName Source Code file name
+     *
+     * @param fileName
+     *            Source Code file name
      */
-    private void processFile(String fileName){
+    private void processFile(String fileName) {
         try {
             File file = new File(new File(fileName).getAbsolutePath());
             context.setCurrentFile(file);
             context.position = 0;
-            logger.fine(
-                    MessageFormat.format("Processing: {0}",
-                            context.getCurrentFile().fileName));
-            BufferedReader reader =
-                    new BufferedReader(new InputStreamReader
-                            (new FileInputStream(file), ENCODING));
+            logger.fine(MessageFormat.format("Processing: {0}", context
+                    .getCurrentFile().fileName));
+            BufferedReader reader = new BufferedReader(new FileReader(file));
             int numRead;
             State state = State.CODE;
-            ExtraState extraState = ExtraState.SKIP;            
+            ExtraState extraState = ExtraState.SKIP;
             StringBuilder buffer = new StringBuilder();
-            StringBuilder extraBuffer = new StringBuilder();            
+            StringBuilder extraBuffer = new StringBuilder();
             StringBuilder extra2Buffer = new StringBuilder();
-            String comment=null;
+            String comment = null;
             char ch;
-            while((numRead=reader.read())!=-1){
+            while ((numRead = reader.read()) != -1) {
                 context.position++;
-                ch =(char)numRead;
+                ch = (char) numRead;
                 buffer.append(ch);
-                switch(state){
-                    case CODE:
-                        switch (extraState){
-                            case SKIP:
-                                break;
-                            case SPACE:
-                                if (isWhite(ch)){
-                                    break;
-                                }
-                                extraState = ExtraState.READ;
-                                /* fall through */
-                            case READ:
-                                if (isWhite(ch)){
-                                    extraState = ExtraState.SPACE2;
-                                    break;
-                                }
-                                extraBuffer.append(ch);
-                                break;
-                            case SPACE2:
-                                if (isWhite(ch)){
-                                    break;
-                                }
-                                extraState = ExtraState.READ2;
-                                /* fall through */
-                            case READ2:
-                                if (isWhite(ch)){
-                                    extraState = ExtraState.SKIP;
-                                    break;
-                                }
-                                extra2Buffer.append(ch);
-                                break;
-                        }                                            
-                        if (StringUtils.endsWith(buffer, START_COMMENT)){
-                            if (comment!=null){
-                                // comment is null before the first comment starts
-                                // so we do not process it
-                                processComment(comment,
-                                        extraBuffer.toString(), extra2Buffer.toString());
-                            }
-                            context.lastCommentPosition = context.position-2;
-                            extraBuffer.setLength(0);
-                            extra2Buffer.setLength(0);
-                            buffer.setLength(0);
-                            state = State.COMMENT;
-                        }
+                switch (state) {
+                case CODE:
+                    switch (extraState) {
+                    case SKIP:
                         break;
-                    case COMMENT:
-                       if (StringUtils.endsWith(buffer, END_COMMENT)){
-                            comment =
-                                    buffer.substring(0,
-                                            buffer.length()-END_COMMENT.length());
-                            buffer.setLength(0);
-                            state = State.CODE;
-                            extraState = ExtraState.SPACE;
+                    case SPACE:
+                        if (isWhite(ch)) {
+                            break;
                         }
+                        extraState = ExtraState.READ;
+                        /* fall through */
+                    case READ:
+                        if (isWhite(ch)) {
+                            extraState = ExtraState.SPACE2;
+                            break;
+                        }
+                        extraBuffer.append(ch);
                         break;
-                }
-            }
-            processComment(comment,
-                    extraBuffer.toString(), extra2Buffer.toString());
-            reader.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+                    case SPACE2:
+                        if (isWhite(ch)) {
+                            break;
+                        }
+                        extraState = ExtraState.READ2;
+                        /* fall through */
+                    case READ2:
+                        if (isWhite(ch)) {
+                            extraState = ExtraState.SKIP;
+                            break;
+                         }
+                         extra2Buffer.append(ch);
+                         break;
+                     }
+                     if (StringUtils.endsWith(buffer, START_COMMENT)) {
+                         if (comment != null) {
+                             // comment is null before the first comment starts
+                             // so we do not process it
+                             processComment(comment, extraBuffer.toString(),
+                                     extra2Buffer.toString());
+                         }
+                         context.lastCommentPosition = context.position - 2;
+                         extraBuffer.setLength(0);
+                         extra2Buffer.setLength(0);
+                         buffer.setLength(0);
+                         state = State.COMMENT;
+                     }
+                     break;
+                 case COMMENT:
+                     if (StringUtils.endsWith(buffer, END_COMMENT)) {
+                         comment = buffer.substring(0, buffer.length()
+                                 - END_COMMENT.length());
+                         buffer.setLength(0);
+                         state = State.CODE;
+                         extraState = ExtraState.SPACE;
+                     }
+                     break;
+                 }
+             }
+             processComment(comment, extraBuffer.toString(), extra2Buffer
+                     .toString());
+             reader.close();
+         } catch (IOException e) {
+             e.printStackTrace();
+         }
     }
 
     private void createClassHierarchy(){
@@ -655,8 +678,7 @@ public class FileProcessor{
         }
     }
 
-    private <T extends DocAttribute> boolean isOverridden(T doc,
-                                                          List<T> docs){
+    private <T extends DocAttribute> boolean isOverridden(T doc, List<T> docs){
         if (doc.name == null || doc.name.isEmpty()) return false;
         for(DocAttribute attr:docs){
             String docName = StringUtils.separateByLastDot(doc.name)[1];
@@ -674,8 +696,7 @@ public class FileProcessor{
         }
     }
 
-    private <T extends DocAttribute> void addInherited
-                                                    (List<T> childDocs, List<T> parentDocs){
+    private <T extends DocAttribute> void addInherited (List<T> childDocs, List<T> parentDocs){
         for(T attr: parentDocs) {
             if (!isOverridden(attr, childDocs) && !attr.isStatic){
                 childDocs.add(attr);
@@ -873,43 +894,40 @@ public class FileProcessor{
         }
     }
 
-    private void copySourceFiles(String targetDir, String wrapper){
+
+    private void copySourceFiles(String targetDir, String wrapper) {
         new File(targetDir).mkdirs();
         StringBuilder prefix = new StringBuilder();
         StringBuilder suffix = new StringBuilder();
         readWrapper(wrapper, prefix, suffix);
-        for(DocFile docFile: context.getDocFiles()){
+        for (DocFile docFile : context.getDocFiles()) {
             try {
-                File dst = new File(new StringBuilder()
-                        .append(targetDir)
-                        .append(File.separator)
-                        .append(docFile.targetFileName)
+                File dst = new File(new StringBuilder().append(targetDir)
+                        .append(File.separator).append(docFile.targetFileName)
                         .toString());
                 StringBuilder buffer = new StringBuilder();
-                BufferedReader reader =
-                    new BufferedReader(new InputStreamReader
-                            (new FileInputStream(docFile.file), ENCODING));
+                BufferedReader reader = new BufferedReader(new FileReader(
+                        docFile.file));
                 // current character
                 int numRead;
                 // position in file
                 int position = 0;
                 // current doc
                 ListIterator<Doc> it = docFile.docs.listIterator();
-                Doc doc=it.hasNext()?it.next():null;
+                Doc doc = it.hasNext() ? it.next() : null;
                 buffer.append(prefix);
-                while((numRead=reader.read())!=-1){
+                while ((numRead = reader.read()) != -1) {
                     position++;
                     char ch = (char) numRead;
-                    if(doc!=null && position==doc.positionInFile){
-                        buffer.append(MessageFormat.format("<div id=\"{0}\"></div>", doc.id));
-                        doc = it.hasNext()?it.next():null;
+                    if (doc != null && position == doc.positionInFile) {
+                        buffer.append(MessageFormat.format(
+                                "<div id=\"{0}\"></div>", doc.id));
+                        doc = it.hasNext() ? it.next() : null;
                     }
                     buffer.append(ch);
                 }
-                buffer.append(suffix);               
-                Writer out =
-                        new BufferedWriter(new OutputStreamWriter
-                                (new FileOutputStream(dst), ENCODING));
+                buffer.append(suffix);
+                Writer out = new BufferedWriter(new FileWriter(dst));
                 out.write(buffer.toString());
                 out.close();
             } catch (IOException e) {
@@ -917,6 +935,7 @@ public class FileProcessor{
             }
         }
     }
+
 
     public void saveToFolder(String folderName, String templateFileName){
         new File(folderName).mkdirs();
@@ -1042,12 +1061,9 @@ public class FileProcessor{
             );
 
             Templates treeTransformation =
-                    factory
-                            .newTemplates (new StreamSource(treeTplFileName)) ;
-            Transformer treeTransformer =
-                    treeTransformation.newTransformer();
-            Document doc =
-                        builderFactory.newDocumentBuilder().newDocument();
+                    factory.newTemplates (new StreamSource(treeTplFileName)) ;
+            Transformer treeTransformer = treeTransformation.newTransformer();
+            Document doc =  builderFactory.newDocumentBuilder().newDocument();
             treeMarshaller.marshal(context.getTree(), doc);
             if (GENERATE_DEBUG_XML){
                     treeMarshaller.

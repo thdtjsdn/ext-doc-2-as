@@ -102,7 +102,6 @@ public class StringUtils {
     };
 
     private static boolean isKeyword(String word){
-        boolean found = false;
         for (String key : KEYWORDS) {
             if (key.equals(word)) return true;
         }

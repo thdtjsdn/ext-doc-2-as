@@ -23,6 +23,7 @@ public class Main {
         formatter.printHelp( "java -jar ext-doc.jar [-p project] -o output [-s source1 -s source2 ...]", options);
     }
 
+    @SuppressWarnings("static-access")
     public static void main(String[] args) {
 
         options = new Options();

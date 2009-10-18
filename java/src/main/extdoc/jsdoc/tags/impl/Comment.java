@@ -26,6 +26,7 @@ public class Comment {
         return description;
     }
 
+    @SuppressWarnings("unchecked")
     public <T extends Tag>  T tag(String tagName){
         for(Tag tag: tagList){
             if (tag.name().equals(tagName)) return (T)tag;
@@ -33,6 +34,7 @@ public class Comment {
         return null;
     }
 
+    @SuppressWarnings("unchecked")
     public <T extends Tag> List<T> tags(String tagName){
         List<T> found = new ArrayList<T>();
         for(Tag tag : tagList){
