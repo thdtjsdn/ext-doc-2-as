@@ -137,6 +137,10 @@ DocPanel = Ext.extend(Ext.Panel, {
         this.title = ps[ps.length-1];
         Ext.apply(this,{
             tbar: ['->',{
+                text: 'Config Options',
+                handler: this.scrollToMember.createDelegate(this, ['configs']),
+                iconCls: 'icon-config'
+            },'-',{
                 text: 'Properties',
                 handler: this.scrollToMember.createDelegate(this, ['props']),
                 iconCls: 'icon-prop'
@@ -149,10 +153,6 @@ DocPanel = Ext.extend(Ext.Panel, {
                 handler: this.scrollToMember.createDelegate(this, ['events']),
                 iconCls: 'icon-event'
             }, '-',{
-                text: 'Config Options',
-                handler: this.scrollToMember.createDelegate(this, ['configs']),
-                iconCls: 'icon-config'
-            }, '-',{
                 text: 'Direct Link',
                 handler: this.directLink,
                 scope: this,
@@ -161,18 +161,18 @@ DocPanel = Ext.extend(Ext.Panel, {
                 tooltip:'Hide Inherited Members',
                 iconCls: 'icon-hide-inherited',
                 enableToggle: true,
+                scope: this,
                 toggleHandler : function(b, pressed){
                      this.body[pressed ? 'addClass' : 'removeClass']('hide-inherited');
-                },
-                scope: this
+                }
             }, '-', {
                 tooltip:'Expand All Members',
                 iconCls: 'icon-expand-members',
                 enableToggle: true,
+                scope: this,
                 toggleHandler : function(b, pressed){
                     this.body[pressed ? 'addClass' : 'removeClass']('full-details');
-                },
-                scope: this
+                }
             }]
         });
         DocPanel.superclass.initComponent.call(this);
