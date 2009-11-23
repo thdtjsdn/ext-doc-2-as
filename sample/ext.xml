@@ -50,7 +50,7 @@
         -->
 
     <sources>
-        <source src="ext/source" match="*.js"/>
+        <source src="ext/src" match="*.js"/>
         <!--<source src="ext" match="Ext*.js"/>-->
         <source src="sample.js" />
     </sources>
