@@ -566,7 +566,9 @@ public class FileProcessor{
             context.position = 0;
             logger.fine(MessageFormat.format("Processing: {0}", context
                     .getCurrentFile().fileName));
-            BufferedReader reader = new BufferedReader(new FileReader(file));
+            BufferedReader reader =
+                    new BufferedReader(new InputStreamReader
+                            (new FileInputStream(file), ENCODING));
             int numRead;
             State state = State.CODE;
             ExtraState extraState = ExtraState.SKIP;
@@ -906,8 +908,9 @@ public class FileProcessor{
                         .append(File.separator).append(docFile.targetFileName)
                         .toString());
                 StringBuilder buffer = new StringBuilder();
-                BufferedReader reader = new BufferedReader(new FileReader(
-                        docFile.file));
+               BufferedReader reader =
+                    new BufferedReader(new InputStreamReader
+                            (new FileInputStream(docFile.file), ENCODING));
                 // current character
                 int numRead;
                 // position in file
@@ -927,7 +930,9 @@ public class FileProcessor{
                     buffer.append(ch);
                 }
                 buffer.append(suffix);
-                Writer out = new BufferedWriter(new FileWriter(dst));
+                Writer out =
+                        new BufferedWriter(new OutputStreamWriter
+                                (new FileOutputStream(dst), ENCODING));
                 out.write(buffer.toString());
                 out.close();
             } catch (IOException e) {
