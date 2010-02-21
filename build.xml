@@ -38,6 +38,7 @@
 
     <target name="compile-test" depends="compile">
         <mkdir dir="${build.dir}/test-classes"/>
+    	<mkdir dir="${build.dir}/test-reports"/>
         <javac srcdir="${test.dir}" destdir="${build.dir}/test-classes" debug="on" classpathref="classpath.test"/>
     </target>
 
@@ -45,8 +46,8 @@
     <target name="test" depends="compile-test">
         <junit haltonfailure="yes">
             <classpath refid="classpath.test"/>
-            <formatter type="brief" usefile="false" />            
-            <batchtest>
+            <formatter type="xml"/>            
+            <batchtest todir="${build.dir}/test-reports">
                 <fileset dir="${build.dir}/test-classes" includes="**/*.class"/>
             </batchtest>            
         </junit>
