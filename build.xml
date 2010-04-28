@@ -80,6 +80,17 @@
         <copy todir="${build.dir}/dist/ext-doc-${version}" file="README.txt"/>
         <zip destfile="${build.dir}/ext-doc-${version}.zip" basedir="${build.dir}/dist"/>        
     </target>
+
+    <property name="ftp.server" value=""/>
+    <property name="ftp.userid" value=""/>
+    <property name="ftp.password" value=""/>
+    <property name="ftp.remotedir" value=""/>
+
+    <target name="ftp">
+        <ftp server="${ftp.server}" userid="${ftp.userid}" password="${ftp.password}" remotedir="${ftp.remotedir}">
+            <fileset file="${build.dir}/ext-doc-${version}.zip"/>
+        </ftp>
+    </target>
     
-    <target name="all" depends="clean, compile, test, jar,dist" description="build all"/>
+    <target name="all" depends="clean, compile, test, jar, dist" description="build all"/>
 </project>
