@@ -323,7 +323,7 @@ public class FileProcessor{
             context.addDocCfg(cfg);
         }
 
-        //injectCustomTags(cls, comment);
+        injectCustomTags(cls, comment);
     }
 
     /**
