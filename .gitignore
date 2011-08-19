@@ -1,0 +1,12 @@
+# IDEA
+*.iml
+*.ipr
+*.iws
+# Backups
+*.*~
+# target dirs
+build/
+out/
+# generated sources
+java/src/main/extdoc/jsdoc/schema/
+java/src/main/extdoc/jsdoc/tplschema/
