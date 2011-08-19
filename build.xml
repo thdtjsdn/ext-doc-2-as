@@ -62,7 +62,7 @@
             <fileset dir="${build.dir}/classes" includes="**/*.class"/>
             <manifest>
                 <attribute name="Main-Class" value="extdoc.Main"/>
-                <attribute name="Class-Path" value="lib/${cli}"/>
+                <attribute name="Class-Path" value="lib/${cli} lib/${jtidy}"/>
             </manifest>
         </jar>
     </target>
@@ -77,7 +77,7 @@
         </copy>
         <mkdir dir="${build.dir}/dist/ext-doc-${version}/lib"/>
         <copy todir="${build.dir}/dist/ext-doc-${version}/lib">
-            <fileset dir="${lib.dir}" includes="${cli}"/>
+            <fileset dir="${lib.dir}" includes="${cli},${jtidy}"/>
         </copy>
         <copy todir="${build.dir}/dist/ext-doc-${version}" file="README.txt"/>
         <zip destfile="${build.dir}/ext-doc-${version}.zip" basedir="${build.dir}/dist"/>        
