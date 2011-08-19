@@ -27,4 +27,8 @@ class ClassTagImpl extends TagImpl implements ClassTag {
     public String getClassDescription() {
         return classDescription;
     }
+
+  public void addClassDescription(String description) {
+    classDescription += description;
+  }
 }

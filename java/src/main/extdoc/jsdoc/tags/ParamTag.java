@@ -13,4 +13,6 @@ public interface ParamTag extends Tag {
     String getParamDescription();
 
     boolean isOptional();
+
+    boolean isRest();
 }

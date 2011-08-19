@@ -7,4 +7,6 @@ package extdoc.jsdoc.tags;
  */
 public interface TypeTag extends Tag {
     String getType();
+
+    String getDescription();
 }

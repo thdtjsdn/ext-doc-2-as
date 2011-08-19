@@ -5,10 +5,12 @@
     <property file="build.properties"/>
     <property name="version" value="snapshot"/>
     <property name="cli" value="commons-cli-1.1.jar"/>
+    <property name="jtidy" value="jtidy-4aug2000r7-dev.jar"/>
 
     <path id="classpath.base">
         <pathelement location="${build.dir}/classes"/>
         <pathelement location="${lib.dir}/${cli}"/>
+        <pathelement location="${lib.dir}/${jtidy}"/>
     </path>
 
     <path id="classpath.test">

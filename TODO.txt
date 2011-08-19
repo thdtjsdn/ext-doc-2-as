@@ -1,0 +1,14 @@
+ext-doc-2-as:
+* \/source links must use upper case package!
+* \/"same package @see" => leave out package!
+* \/ "@" in comments must be entity &#64;
+* \/ move *Cfg classes of components to ext.xtypes.<xtype>
+
+* Rewrite {@link} differently: either correct <a href>, or collect and generate @see
+* Ext documentation bug: {@link @foo} should be {@link #foo}
+* \/remove <p>...</p> around first paragraph to get the right short description in overview
+* \/remove double new-lines in <pre> blocks
+* Singletons!
+* \/Detect incompatible overrides (faster than having IDEA compute inspections!)
+
+* Submit Ext JS documentation fixes to Sencha

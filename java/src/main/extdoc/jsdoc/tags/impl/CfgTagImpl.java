@@ -22,6 +22,10 @@ class CfgTagImpl extends TagImpl implements CfgTag {
         String[] str = divideAtWhite(text, 3);
         cfgType = removeBrackets(str[0]);
         cfgName = str[1];
+        if (cfgName == null || cfgName.length() == 0) {
+          cfgName = cfgType;
+          cfgType = null;
+        }
         optional = isOptional(str[2]);
         cfgDescription = optional?cutOptional(str[2]):str[2];
 

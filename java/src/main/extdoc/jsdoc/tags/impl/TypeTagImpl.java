@@ -10,13 +10,21 @@ import extdoc.jsdoc.tags.TypeTag;
 class TypeTagImpl extends TagImpl implements TypeTag {
 
     private String type;
+    private String description;
 
     public TypeTagImpl(String name, String text) {
         super(name, text);
-        type = removeBrackets(text);        
+        String[] str = divideAtWhite(text, 2);
+        type = removeBrackets(str[0]);
+        // Ext JS documentation bug: sometime, the property description is placed *after* the @type annotation
+        description = str[1];
     }
 
     public String getType() {
         return type;
+    }
+
+    public String getDescription() {
+        return description;
     }
 }

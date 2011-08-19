@@ -9,4 +9,6 @@ public interface ClassTag extends Tag{
     String getClassName();
 
     String getClassDescription();
+
+    void addClassDescription(String description);
 }

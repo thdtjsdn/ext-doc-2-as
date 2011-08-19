@@ -8,6 +8,6 @@ import java.util.List;
  * Date: 25.10.2008
  * Time: 15:14:36
  */
-public class DocEvent extends DocAttribute{
+public class DocEvent extends DocAttribute<DocEvent> {
     public List<Param> params = new ArrayList<Param>();
 }

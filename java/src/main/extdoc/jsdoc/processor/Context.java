@@ -6,7 +6,9 @@ import extdoc.jsdoc.tree.TreePackage;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * User: Andrey Zubkov
@@ -28,6 +30,10 @@ class Context {
     private List<DocFile> docFiles = new ArrayList<DocFile>();
 
     private List<DocClass> classes = new ArrayList<DocClass>();
+
+    private Map<String,DocClass> classesByName = new HashMap<String,DocClass>();
+
+    private Map<String,DocClass> classesByShortName = new HashMap<String,DocClass>();
 
     private List<DocCfg> cfgs = new ArrayList<DocCfg>();
 
@@ -87,6 +93,17 @@ class Context {
         currentFile.docs.add(docClass);
         currentClass = docClass;
         classes.add(docClass);
+        classesByName.put(docClass.className, docClass);
+        // to only return unique short class names, store "null" for multiple keys:
+        classesByShortName.put(docClass.shortClassName,
+          classesByShortName.containsKey(docClass.shortClassName)
+            ? null
+            : docClass);
+    }
+
+    public DocClass resolveClass(String className) {
+        DocClass docClass = classesByName.get(className);
+        return docClass == null ? classesByShortName.get(className) : docClass;
     }
 
     public void addDocCfg(DocCfg docCfg) {
@@ -175,5 +192,6 @@ class Context {
                 
         this.currentFile = docFile;
         addDocFile(this.currentFile);
+        currentClass = null;
     }
 }

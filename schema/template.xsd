@@ -1,16 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
-	<xs:element name="treeTemplate">
-		<xs:complexType>
-			<xs:attribute name="tpl" type="xs:string" use="required"/>
-			<xs:attribute name="targetFile" type="xs:string" use="required"/>
-		</xs:complexType>
-	</xs:element>
 	<xs:element name="template">
 		<xs:complexType>
 			<xs:sequence>
 				<xs:element ref="classTemplate"/>
-				<xs:element ref="treeTemplate"/>
+				<xs:element ref="singletonTemplate"/>
+				<xs:element ref="configClassTemplate"/>
                 <xs:element ref="source"/>
                 <xs:element ref="resources"/>
 			</xs:sequence>
@@ -30,6 +25,18 @@
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="classTemplate">
+		<xs:complexType>
+			<xs:attribute name="tpl" type="xs:string" use="required"/>
+			<xs:attribute name="targetDir" type="xs:string" use="required"/>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="configClassTemplate">
+		<xs:complexType>
+			<xs:attribute name="tpl" type="xs:string" use="required"/>
+			<xs:attribute name="targetDir" type="xs:string" use="required"/>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="singletonTemplate">
 		<xs:complexType>
 			<xs:attribute name="tpl" type="xs:string" use="required"/>
 			<xs:attribute name="targetDir" type="xs:string" use="required"/>

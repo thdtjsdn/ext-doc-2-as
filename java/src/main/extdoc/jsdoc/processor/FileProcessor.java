@@ -6,6 +6,10 @@ import extdoc.jsdoc.tags.impl.Comment;
 import extdoc.jsdoc.tplschema.*;
 import extdoc.jsdoc.util.StringUtils;
 import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.w3c.tidy.Configuration;
+import org.w3c.tidy.Tidy;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -21,9 +25,11 @@ import javax.xml.transform.stream.StreamSource;
 import java.io.*;
 import java.text.MessageFormat;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.*;
 import java.util.regex.Pattern;
 
@@ -36,15 +42,95 @@ import java.util.regex.Pattern;
  */
 public class FileProcessor{
 
+  private static final Tidy TIDY;
+
+  static {
+        TIDY = new Tidy();
+        TIDY.setCharEncoding(Configuration.UTF8);
+        TIDY.setAltText("");
+        TIDY.setBreakBeforeBR(false);
+        TIDY.setDropEmptyParas(true);
+        TIDY.setDropFontTags(true);
+        TIDY.setEncloseText(false);
+        TIDY.setEncloseBlockText(false);
+        TIDY.setFixComments(true);
+        TIDY.setHideEndTags(false);
+        TIDY.setIndentAttributes(false);
+        TIDY.setMakeClean(true);
+        TIDY.setNumEntities(true);
+        TIDY.setQuiet(true);
+        TIDY.setQuoteAmpersand(true);
+        TIDY.setShowWarnings(false);
+        TIDY.setSmartIndent(false);
+        TIDY.setSpaces(0);
+        TIDY.setXHTML(true);
+        TIDY.setXmlOut(true);
+        TIDY.setXmlSpace(false);
+        TIDY.setXmlPi(false);
+    }
+
+  public static String tidy(String dirtyHtml) {
+    String wrappedHtml = "<html xmlns:ext=\"http://extjs.com/ext3\"><body>"+dirtyHtml+"</body></html>";
+    StringWriter result = new StringWriter();
+    try {
+      Document document = TIDY.parseDOM(new ByteArrayInputStream(wrappedHtml.getBytes("ISO-8859-1")), null);
+      // "unpack" first paragraph:
+      Node body = document.getElementsByTagName("body").item(0);
+      Node firstNode = body.getFirstChild();
+      if (firstNode != null && "p".equalsIgnoreCase(firstNode.getNodeName())) {
+        NodeList childNodes = firstNode.getChildNodes();
+        Node newFirstChild = firstNode.getNextSibling();
+        for (int i = 0; i < childNodes.getLength(); i++) {
+          body.insertBefore(childNodes.item(i).cloneNode(true), newFirstChild);
+        }
+        // Add new-line, or ASDoc will not recognize the ".":
+        body.insertBefore(document.createTextNode("\n"), newFirstChild);
+        body.removeChild(firstNode);
+      }
+      DOMSource domSource = new DOMSource(document.getDocumentElement());
+      Transformer serializer = TransformerFactory.newInstance().newTransformer();
+      serializer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+      serializer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+      serializer.setOutputProperty(OutputKeys.DOCTYPE_PUBLIC, "-//W3C//DTD XHTML 1.0 Transitional//EN");
+      serializer.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM, "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd");
+      serializer.transform(domSource, new StreamResult(result));
+    } catch (TransformerException e) {
+      throw new RuntimeException(e);
+    } catch (UnsupportedEncodingException e) {
+      // should not happen for ISO-8859-1:
+      throw new RuntimeException(e);
+    }
+    String xml = result.toString();
+    if (xml.contains("<body/>")) {
+      return "";
+    }
+    int bodyStart = xml.indexOf("<body");
+    int bodyEnd = xml.indexOf("</body>");
+    if(bodyEnd == -1)  {
+      xml += "</body></html>";
+      bodyEnd = xml.indexOf("</body>");
+    }
+    if (bodyStart==-1 || bodyEnd==-1) {
+      // should not happen:
+      throw new RuntimeException("No body element found in "+xml);
+    }
+    xml = xml.substring(xml.indexOf('>', bodyStart) + 1, bodyEnd);
+    xml = xml.replaceAll("@", "&#64;");
+    xml = xml.replaceAll("\\*", "&#42;");
+    xml = xml.replaceAll(" ext:(member|cls)=\"[^\"]+\"", "");
+    xml = xml.replaceAll("\r\n", "\n");
+    return xml;
+  }
+
     private final Logger logger;
 
     private final Handler logHandler;
 
     private Context context = new Context();
 
-    private final static String OUT_FILE_EXTENSION = "html";
+    private final static String OUT_FILE_EXTENSION = "as";
     private final static boolean GENERATE_DEBUG_XML = false;
-    private final static String COMPONENT_NAME = "Ext.Component";
+    private final static String COMPONENT_NAME = "ext.Component";
     private final static String DEFAULT_TYPE = "Object";
 
     private static final String START_LINK = "{@link";    
@@ -53,13 +139,11 @@ public class FileProcessor{
 
     private static final String
         MEMBER_REFERENCE_TPL =
-            "<a href=\"output/{0}.html#{0}-{1}\" " +
-                    "ext:member=\"{1}\" ext:cls=\"{0}\">{2}</a>";
+            "<a href=\"output/{0}.html#{0}-{1}\">{2}</a>";
 
     private static final String
         CLASS_REFERENCE_TPL =
-            "<a href=\"output/{0}.html\" " +
-                    "ext:cls=\"{0}\">{1}</a>";
+            "<a href=\"{0}.html\">{1}</a>";
 
     private static final int DESCR_MAX_LENGTH = 117;
 
@@ -132,7 +216,7 @@ public class FileProcessor{
     }    
 
     /**
-     * Replaces inline tag @link to actual html links and returns shot and/or
+     * Replaces inline tag @link to actual html links and returns short and/or
      * long versions.
      *
      * @param cnt
@@ -145,13 +229,12 @@ public class FileProcessor{
         if (cnt == null) {
             return null;
         }
-        String content = StringUtils.highlightCode(cnt);
         LinkStates state = LinkStates.READ;
         StringBuilder sbHtml = new StringBuilder();
         StringBuilder sbText = new StringBuilder();
         StringBuilder buffer = new StringBuilder();
-        for (int i = 0; i < content.length(); i++) {
-            char ch = content.charAt(i);
+        for (int i = 0; i < cnt.length(); i++) {
+            char ch = cnt.charAt(i);
             switch (state) {
             case READ:
                 if (StringUtils.endsWith(buffer, START_LINK)) {
@@ -187,7 +270,7 @@ public class FileProcessor{
         String sbString = sbText.toString().replaceAll("<\\S*?>","");        
 
                Description description = new Description();
-        description.longDescr = sbHtml.toString();
+        description.longDescr = tidy(sbHtml.toString());
         if (alwaysGenerateShort) {
             description.hasShort = true;
             description.shortDescr = sbString.length() > DESCR_MAX_LENGTH ? new StringBuilder()
@@ -214,13 +297,16 @@ public class FileProcessor{
      *            target list of params
      */
     private void readParams(List<ParamTag> paramTags, List<Param> params) {
+            Boolean optional = false;
             for (ParamTag paramTag : paramTags) {
                     Param param = new Param();
-                    param.name = paramTag.getParamName();
+                    param.name = replaceKeyword(paramTag.getParamName());
                     param.type = paramTag.getParamType();
                     Description descr = inlineLinks(paramTag.getParamDescription());
                     param.description = descr != null ? descr.longDescr : null;
-                    param.optional = paramTag.isOptional();
+                    param.rest = paramTag.isRest();
+                    // all parameters following an optional one have to be optional:
+                    optional = param.optional = !param.rest && (optional || paramTag.isOptional());
                     params.add(param);
             }
     }
@@ -256,8 +342,16 @@ public class FileProcessor{
         Tag constructorTag = comment.tag("@constructor");
         List<ParamTag> paramTags = comment.tags("@param");
         Tag namespaceTag = comment.tag("@namespace");
+        Tag xtypeTag = comment.tag("@xtype");
 
         cls.className = classTag.getClassName();
+        if (xtypeTag != null) {
+          String[] parts = xtypeTag.text().split("\n", 2);
+          cls.xtype = parts[0];
+          if (parts.length > 1) {
+            classTag.addClassDescription(parts[1]);
+          }
+        }
         boolean found = false;
         for (DocClass d : context.getClasses()) {
             if (d.className.equals(cls.className)) {
@@ -266,9 +360,6 @@ public class FileProcessor{
                 found = true;
                 break;
             }
-        }
-        if (!found) {
-            context.addDocClass(cls);
         }
 
         if (cls.packageName == null) {
@@ -282,6 +373,9 @@ public class FileProcessor{
                   cls.shortClassName = str[1];
               }
           }
+          if (!found) {
+              context.addDocClass(cls);
+          }
 
         cls.definedIn.add(context.getCurrentFile().fileName);
         if (!cls.singleton) {
@@ -292,7 +386,7 @@ public class FileProcessor{
         }       
 
         // Skip private classes
-        if (comment.hasTag("@private") || comment.hasTag("@ignore")) {
+        if (/*comment.hasTag("@private") ||*/ comment.hasTag("@ignore")) {
             cls.hide = true;
         }
 
@@ -304,6 +398,17 @@ public class FileProcessor{
                cls.constructorDescription = inlineLinks(constructorTag.text(),
                        true);
                readParams(paramTags, cls.params);
+           } else if (cls.xtype != null) {
+             System.err.println("generating constructor for " + cls.className);
+             Description constructorDescription = new Description();
+             constructorDescription.longDescr = "Create a new " + cls.shortClassName + ".";
+             cls.constructorDescription = constructorDescription;
+             Param param = new Param();
+             param.name = "config";
+             param.type = "Object";
+             param.description = "The config object";
+             param.optional = true;
+             cls.params.add(param);
            }
        }
 
@@ -333,10 +438,13 @@ public class FileProcessor{
      */
     private DocCfg getDocCfg(CfgTag tag){
         DocCfg cfg = new DocCfg();
-        cfg.name = tag.getCfgName();
-        cfg.type = tag.getCfgType();
-        cfg.description = inlineLinks(tag.getCfgDescription());
-        cfg.optional = tag.isOptional();
+        cfg.name = replaceKeyword(tag.getCfgName());
+        String cfgType = tag.getCfgType();
+        if (cfgType != null) {
+            cfg.type = cfgType;
+            cfg.description = inlineLinks(tag.getCfgDescription());
+            cfg.optional = tag.isOptional();
+        }
         cfg.className = context.getCurrentClass().className;
         cfg.shortClassName =
                 context.getCurrentClass().shortClassName;
@@ -350,14 +458,23 @@ public class FileProcessor{
      */
     private void processCfg(Comment comment){
         // Skip private
-        if (comment.hasTag("@private")
-                || comment.hasTag("@ignore")) return;
+        if (/*comment.hasTag("@private")
+                ||*/ comment.hasTag("@ignore")) return;
         CfgTag tag = comment.tag("@cfg");
         DocCfg cfg = getDocCfg(tag);
+        if (cfg.type == null) {
+            TypeTag typeTag = comment.tag("@type");
+            if (typeTag != null) {
+                cfg.type = typeTag.getType();
+                cfg.description = inlineLinks(typeTag.getDescription());
+            }
+        }
         cfg.hide = comment.tag("@hide")!=null;
         injectCustomTags(cfg, comment);
         context.addDocCfg(cfg);
     }
+
+    private static final String READ_ONLY = "Read-only.";
 
     /**
      * Process property 
@@ -366,7 +483,12 @@ public class FileProcessor{
      */
     private void processProperty(Comment comment,String extraLine){
         // Skip private
-        if (comment.hasTag("@private") || comment.hasTag("@ignore")) {
+        if (/*comment.hasTag("@private") ||*/ comment.hasTag("@ignore")) {
+            return;
+        }
+        if (!comment.hasTag("@property") && (extraLine.equals("function") || extraLine.equals("var") || extraLine.equals("for") || extraLine.equals("if"))) {
+            // wrong guess of type "property":
+            System.out.println("ignoring JSDoc comment " + comment.getDescription() + "\n");
             return;
         }
 
@@ -375,19 +497,39 @@ public class FileProcessor{
 
         PropertyTag propertyTag = comment.tag("@property");
         TypeTag typeTag = comment.tag("@type");
+        Tag staticTag = comment.tag("@static");
+        Tag protectedTag = comment.tag("@protected");
 
-        property.name = StringUtils.separateByLastDot(extraLine)[1];
+        String name = extraLine;
         String description = comment.getDescription();
         if (propertyTag!=null){
             String propertyName = propertyTag.getPropertyName();
             if (propertyName!=null && propertyName.length()>0){
-                property.name = propertyName;
+                name = propertyName;
             }
             String propertyDescription = propertyTag.getPropertyDescription();
             if (propertyDescription!=null && propertyDescription.length()>0){
                 description = propertyDescription;
             }
         }
+        property.name = replaceKeyword(StringUtils.separateByLastDot(name)[1]);
+        if (property.name.length() == 0) {
+          //System.err.println("Ignoring empty property in file " + context.getCurrentFile());
+          return;
+        }
+        if (property.name.equals(property.name.toUpperCase())) {
+          // heuristic: all-upper-case identifiers are constants
+          property.isConstant = true;
+          property.isReadOnly = true;
+        }
+        if (description != null) {
+            if (description.contains(READ_ONLY)) {
+                description = description.replace(READ_ONLY, "");
+                property.isReadOnly = true;
+            }
+        }
+        property.isStatic = staticTag!=null;
+        property.visibility = protectedTag!=null ? "protected" : "public";
         property.type = typeTag!=null?typeTag.getType():DEFAULT_TYPE;
         property.description = inlineLinks(description);
         property.className = context.getCurrentClass().className;
@@ -404,7 +546,11 @@ public class FileProcessor{
      */
     private void processMethod(Comment comment, String extraLine){
         // Skip private
-        if (comment.hasTag("@private") || comment.hasTag("@ignore")) {
+        if (/*comment.hasTag("@private") ||*/ comment.hasTag("@ignore")) {
+            return;
+        }
+
+        if (extraLine.equals("function")) {
             return;
         }
 
@@ -412,6 +558,7 @@ public class FileProcessor{
 
         Tag methodTag = comment.tag("@method");
         Tag staticTag = comment.tag("@static");
+        Tag protectedTag = comment.tag("@protected");
         List<ParamTag> paramTags = comment.tags("@param");
         ReturnTag returnTag = comment.tag("@return");
         MemberTag memberTag = comment.tag("@member");
@@ -420,22 +567,27 @@ public class FileProcessor{
         DocClass doc = context.getCurrentClass();
         method.className = doc!=null?doc.className:null;
         method.shortClassName = doc!=null?doc.shortClassName:null;
-        method.name = StringUtils.separatePackage(extraLine)[1];
+        String[] parts = StringUtils.separatePackage(extraLine);
+        method.name = replaceKeyword(parts[1]);
         if (methodTag!=null){
             if (!methodTag.text().isEmpty()){
-                method.name = methodTag.text();
+                method.name = replaceKeyword(methodTag.text());
             }
         }
         if (memberTag!=null){
             String name = memberTag.getMethodName();
             if (name!=null){
-                method.name = name;
+                method.name = replaceKeyword(name);
             }
             method.className = memberTag.getClassName();
             method.shortClassName =
                     StringUtils.separatePackage(method.className)[1];
         }
-        method.isStatic = (staticTag!=null);
+        if (method.name == null || method.name.length() == 0) {
+            return;
+        }
+        method.isStatic = staticTag != null || memberTag!=null && memberTag.text().equals(parts[0]);
+        method.visibility = protectedTag!=null ? "protected" : "public";
 
         // renaming if static
 //        if(method.isStatic){
@@ -448,8 +600,12 @@ public class FileProcessor{
 
         method.description = inlineLinks(comment.getDescription(), true);
         if (returnTag!=null){
-            method.returnType =returnTag.getReturnType();
+            String returnType = returnTag.getReturnType();
+            method.returnType = "this".equals(returnType) ? method.className : returnType;
             method.returnDescription =returnTag.getReturnDescription();
+            if (method.returnDescription != null) {
+                method.returnDescription = inlineLinks(method.returnDescription).longDescr;
+            }
         }
         readParams(paramTags, method.params);
         method.hide = comment.tag("@hide")!=null;
@@ -463,7 +619,7 @@ public class FileProcessor{
      */
     private void processEvent(Comment comment){
         // Skip private
-        if (comment.hasTag("@private")  || comment.hasTag("@ignore")) {
+        if (/*comment.hasTag("@private")  ||*/ comment.hasTag("@ignore")) {
             return;
         }
 
@@ -502,9 +658,10 @@ public class FileProcessor{
         }else if (comment.hasTag("@type")
                 || comment.hasTag("@property")){
             return CommentType.PROPERTY;                    
-        }else if(extra2Line.equals("function")){
+        }else if(extra2Line.equals("function") || extra2Line.equals("Ext.emptyFn")){
             return CommentType.METHOD;
         }else{
+            //System.err.println("+++++++++++++++ guessed property: extraLine: '" + extraLine + "', extra2Line: '"+extra2Line+"'");
             return CommentType.PROPERTY;
         }
     }
@@ -518,7 +675,12 @@ public class FileProcessor{
     private void processComment(String content, String extraLine, String extra2Line){
         if (content==null) return;
         Comment comment = new Comment(content);
-        switch (resolveCommentType(comment, extraLine, extra2Line)){
+        CommentType commentType = resolveCommentType(comment, extraLine, extra2Line);
+        if (context.getCurrentClass() == null && commentType != CommentType.CLASS) {
+          // ignore comments that come before a @class annotation!
+          return;
+        }
+        switch (commentType){
             case CLASS:
                 processClass(comment);
                 break;
@@ -680,14 +842,20 @@ public class FileProcessor{
         }
     }
 
-    private <T extends DocAttribute> boolean isOverridden(T doc, List<T> docs){
-        if (doc.name == null || doc.name.isEmpty()) return false;
-        for(DocAttribute attr:docs){
-            String docName = StringUtils.separateByLastDot(doc.name)[1];
-            String attrName = StringUtils.separateByLastDot(attr.name)[1];
-            if (docName.equals(attrName)) return true;
+    private <T extends DocAttribute> T findOverride(T doc, List<T> docs){
+        if (doc.name == null || doc.name.isEmpty())
+            return null;
+        String docClassName = doc.className;
+        String docName = StringUtils.separateByLastDot(doc.name)[1];
+        for(T attr:docs){
+            if (!docClassName.equals(attr.className)) {
+                String attrName = StringUtils.separateByLastDot(attr.name)[1];
+                if (docName.equals(attrName)) {
+                    return attr;
+                }
+            }
         }
-        return false;
+        return null;
     }
 
     private <T extends Doc> void removeHidden
@@ -700,12 +868,194 @@ public class FileProcessor{
 
     private <T extends DocAttribute> void addInherited (List<T> childDocs, List<T> parentDocs){
         for(T attr: parentDocs) {
-            if (!isOverridden(attr, childDocs) && !attr.isStatic){
-                childDocs.add(attr);
+            if (!attr.isStatic) {
+              T override = findOverride(attr, childDocs);
+              if (override == null) {
+                  childDocs.add(attr);
+              } else {
+                  override.inheritFrom(attr);
+              }
             }
         }
     }
 
+
+    private void computeAS3Names(){
+        for(DocClass cls: context.getClasses()){
+          cls.as3PackageName = cls.packageName.toLowerCase();
+          cls.as3ShortClassName = cls.shortClassName;
+          // exceptional type name mappings:
+          if ("Error".equals(cls.as3ShortClassName)) {
+            // naming a class like a built-in top-level class is a bad idea in AS3...
+            cls.as3ShortClassName = "ExtError";
+          } else if ("Ext".equals(cls.as3ShortClassName)) {
+            cls.as3PackageName = "ext"; // move singleton into ext package.
+          }
+          cls.as3ClassName = cls.as3PackageName.length() == 0 ? cls.as3ShortClassName : cls.as3PackageName + "." + cls.as3ShortClassName;
+          if (cls.singleton) {
+            cls.as3SingletonName = cls.as3ClassName;
+            cls.as3SingletonPackageName = cls.as3PackageName;
+            cls.as3ShortSingletonName = cls.as3ShortClassName;
+            if (mayBeAS3Interface(cls)) {
+              cls.as3ShortClassName = "I" + cls.as3ShortClassName;
+              cls.as3Type = "interface";
+            } else {
+              cls.as3ShortClassName += "Class";
+            }
+            cls.as3ClassName = cls.as3PackageName + "." + cls.as3ShortClassName;
+          }
+        }
+
+        for(DocClass cls: context.getClasses()){
+          // super class
+          cls.as3ParentClass = cls.parent != null ? cls.parent.as3ClassName
+            : cls.parentClass != null ? asAS3Type(cls.parentClass)
+            : null;
+          // suppress explicit "extends Object" (breaks interfaces!)
+          if ("Object".equals(cls.as3ParentClass)) {
+            cls.as3ParentClass = null;
+            cls.parentClass = null;
+            cls.parent = null;
+          }
+
+          if (isEmptySingletonType(cls)) {
+            // move singleton without additional properties or methods to super class:
+            cls.parent.as3SingletonName = cls.as3SingletonName;
+            cls.parent.as3SingletonPackageName = cls.as3SingletonPackageName;
+            cls.parent.as3ShortSingletonName = cls.as3ShortSingletonName;
+          }
+
+          // config class
+          boolean hasCfgs = !cls.cfgs.isEmpty() || cls.xtype != null;
+
+          if (hasCfgs) {
+            cls.cfgPackageName = "ext.config";
+              // set config class name etc.:
+            cls.cfgShortClassName = cls.xtype != null ? cls.xtype : cls.shortClassName.toLowerCase();
+            cls.cfgClassName = cls.cfgPackageName + "." + cls.cfgShortClassName;
+          }
+
+          // events
+          for (DocEvent event : cls.events) {
+            for (Param param : event.params) {
+              param.as3Type = asAS3Type(param.type);
+            }
+          }
+          // constructor
+          for (Param param : cls.params) {
+            param.as3Type = hasCfgs && "config".equals(param.name)
+              ? cls.cfgClassName // tweak config parameter's type
+              : asAS3Type(param.type);
+          }
+          // properties
+          for (DocProperty property : cls.properties) {
+            property.as3Type = asAS3Type(property.type);
+          }
+          // methods
+          for (DocMethod method : cls.methods) {
+            for (Param param : method.params) {
+              param.as3Type = asAS3Type(param.type);
+            }
+            method.as3ReturnType = asAS3Type(method.returnType);
+          }
+          // cfg properties
+          for (DocCfg cfg : cls.cfgs) {
+            cfg.as3Type = asAS3Type(cfg.type);
+          }
+
+        }
+
+        // Now that we know all config classes, determine config super class:
+        for(DocClass cls: context.getClasses()){
+          if (cls.cfgClassName != null) {
+            DocClass parentClass = cls.parent;
+            while (parentClass != null) {
+              if (parentClass.cfgClassName != null) {
+                cls.cfgParentClass = parentClass.cfgClassName;
+                break;
+              }
+              parentClass = parentClass.parent;
+            }
+          }
+        }
+
+    }
+
+  private boolean isEmptySingletonType(DocClass cls) {
+    return cls.singleton && cls.parent != null && cls.properties.isEmpty() && cls.methods.isEmpty();
+  }
+
+  private boolean mayBeAS3Interface(DocClass cls) {
+    return (cls.parent == null || "Object".equals(cls.parentClass));
+  }
+
+  private void setImports(){
+        for(DocClass cls: context.getClasses()){
+            setImports(cls);
+        }
+    }
+
+  private void setImports(DocClass cls) {
+    // super class
+    addImport(cls, cls.as3ParentClass);
+    // config class
+    addImport(cls, cls.cfgClassName);
+    // events
+    for (DocEvent event : cls.events) {
+      for (Param param : event.params) {
+        addImport(cls, param.as3Type);
+      }
+    }
+    // constructor
+    for (Param param : cls.params) {
+      addImport(cls, param.as3Type);
+    }
+    // properties
+    for (DocProperty property : cls.properties) {
+      addImport(cls, property.as3Type);
+    }
+    // methods
+    for (DocMethod method : cls.methods) {
+      for (Param param : method.params) {
+        addImport(cls, param.as3Type);
+      }
+      addImport(cls, method.as3ReturnType);
+    }
+
+    if (cls.cfgClassName != null) {
+      // super class
+      addCfgImport(cls, cls.cfgParentClass);
+      // cfg properties
+      for (DocCfg cfg : cls.cfgs) {
+        if (cfg.type != null) {
+          addCfgImport(cls, cfg.as3Type);
+        }
+      }
+    }
+  }
+
+  private void addImport(DocClass cls, String className) {
+    addImport(cls.imports, cls.as3PackageName, className);
+  }
+
+  private void addCfgImport(DocClass cls, String cfgClassName) {
+    addImport(cls.cfgImports, cls.cfgPackageName, cfgClassName);
+  }
+
+  private void addImport(Set<ClassDescr> imports, String currentPackage, String importClassName) {
+      if (importClassName == null) {
+        return;
+      }
+      String[] parts = StringUtils.separateByLastDot(importClassName);
+      String packageName = parts[0];
+      String shortClassName = parts[1];
+      if (packageName.length() > 0 && !currentPackage.equals(packageName)) {
+        ClassDescr classDescr = new ClassDescr();
+        classDescr.shortClassName = shortClassName;
+        classDescr.className = packageName + "." + classDescr.shortClassName;
+        imports.add(classDescr);
+      }
+    }
 
     private void injectInherited(){
         for(DocClass cls: context.getClasses()){
@@ -735,6 +1085,10 @@ public class FileProcessor{
             Collections.sort(cls.methods);
             Collections.sort(cls.events);
 
+            setSuperCallParams(cls);
+            // *** experimental: add all cfgs as properties, if not already present:
+            addCfgsToProperties(cls);
+            
             Collections.reverse(cls.superClasses);
             Collections.sort(cls.subClasses);
 
@@ -742,7 +1096,61 @@ public class FileProcessor{
         removeHidden(context.getClasses());
     }
 
-    private void createPackageHierarchy(){
+  private void addCfgsToProperties(DocClass cls) {
+    for (DocCfg docCfg : cls.cfgs) {
+      if (!"Function".equals(docCfg.type)) {
+        DocProperty cfgProperty = new DocProperty();
+        if (!containsAttributeWithSameName(cls.properties, docCfg) && !containsAttributeWithSameName(cls.methods, docCfg)) {
+          // if no property of that name exists, create one from the cfg:
+          cfgProperty.name = docCfg.name;
+          cfgProperty.type = docCfg.type;
+          cfgProperty.isReadOnly = true;
+          cfgProperty.isOverride = docCfg.isOverride;
+          cfgProperty.description = docCfg.description;
+          cfgProperty.className = docCfg.className;
+          cfgProperty.shortClassName = docCfg.shortClassName;
+          cfgProperty.as3Type = docCfg.as3Type;
+          cfgProperty.visibility = "public";
+          cls.properties.add(cfgProperty);
+        }
+      }
+    }
+  }
+
+  private static boolean containsAttributeWithSameName(List<? extends DocAttribute> properties, DocAttribute attribute) {
+    String name = attribute.name;
+    String getterName = "get" + name.substring(0, 1).toUpperCase() + name.substring(1);
+    for (DocAttribute d : properties) {
+      if (d.name.equals(name)) {
+        //System.err.println("Class " + d.className + ": @cfg " + name + " already exists as property.");
+        return true;
+      }
+      if (d instanceof DocMethod) {
+        DocMethod m = (DocMethod)d;
+        if (m.params.size() == 0 && !"void".equals(m.as3ReturnType) && getterName.equals(m.name)) {
+          System.err.println("Class " + d.className + ": @cfg " + attribute + " not converted to getter, because method " + getterName + "() is present.");
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  private void setSuperCallParams(DocClass cls) {
+    if (cls.parent != null) {
+      List<Param> params = cls.parent.params;
+      StringBuilder builder = new StringBuilder();
+      for (Param param : params) {
+        if (builder.length() > 0) {
+          builder.append(", ");
+        }
+        builder.append("Number".equalsIgnoreCase(param.type) ? "undefined" : "Boolean".equalsIgnoreCase(param.type) ? "false" : "null");
+      }
+      cls.superCallParams = builder.toString();
+    }
+  }
+
+  private void createPackageHierarchy(){
         for(DocClass cls: context.getClasses()){
             context.addClassToTree(cls);
         }
@@ -830,6 +1238,8 @@ public class FileProcessor{
             createClassHierarchy();
             injectInherited();
             createPackageHierarchy();
+            computeAS3Names();
+            setImports();
         } catch (JAXBException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -846,7 +1256,7 @@ public class FileProcessor{
          
         if (sourceLocation.isDirectory()) {
             if (!targetLocation.exists()) {
-                targetLocation.mkdir();
+                targetLocation.mkdirs();
             }
 
             String[] children = sourceLocation.list();
@@ -967,16 +1377,17 @@ public class FileProcessor{
                     .append(File.separator)
                     .append(classTemplate.getTargetDir())
                     .toString();
-            TreeTemplate treeTemplate = template.getTreeTemplate();
-            String treeTplFileName = new StringBuilder()
+            ConfigClassTemplate configClassTemplate = template.getConfigClassTemplate();
+            String configTplFileName = new StringBuilder()
                     .append(templateFolder)
                     .append(File.separator)
-                    .append(treeTemplate.getTpl())
+                    .append(configClassTemplate.getTpl())
                     .toString();
-            String treeTplTargetFile = new StringBuilder()
-                    .append(folderName)
+            SingletonTemplate singletonTemplate = template.getSingletonTemplate();
+            String singletonTplFileName = new StringBuilder()
+                    .append(templateFolder)
                     .append(File.separator)
-                    .append(treeTemplate.getTargetFile())
+                    .append(singletonTemplate.getTpl())
                     .toString();
 
             logger.info("*** COPY RESOURCES ***") ;
@@ -1034,48 +1445,30 @@ public class FileProcessor{
                             .newTemplates (new StreamSource(classTplFileName)) ;
             Transformer transformer = transformation.newTransformer();
 
+            Templates configTransformation = 
+                    factory
+                            .newTemplates (new StreamSource(configTplFileName)) ;
+            Transformer configTransformer = configTransformation.newTransformer();
+
+            Templates singletonTransformation = 
+                    factory
+                            .newTemplates (new StreamSource(singletonTplFileName)) ;
+            Transformer singletonTransformer = singletonTransformation.newTransformer();
+
             DocumentBuilder docBuilder = builderFactory.newDocumentBuilder();
 
             logger.info("*** SAVING FILES ***") ;
             for(DocClass docClass: context.getClasses()){
-                logger.fine("Saving: " + docClass.className);
-                String targetFileName = new StringBuilder()
-                        .append(classTplTargetDir)
-                        .append(File.separator)
-                        .append(docClass.className)
-                        .append('.')
-                        .append(OUT_FILE_EXTENSION)
-                        .toString();
-                Document doc = docBuilder.newDocument();
-                marshaller.marshal(docClass, doc);
-                if (GENERATE_DEBUG_XML){
-                    marshaller.marshal(docClass, new File(targetFileName+"_"));
+              if (!isEmptySingletonType(docClass)) {
+                generateClass(classTplTargetDir, marshaller, transformer, docBuilder, docClass, docClass.as3ClassName);
+                if (docClass.as3SingletonName != null) {
+                  generateClass(classTplTargetDir, marshaller, singletonTransformer, docBuilder, docClass, docClass.as3SingletonName);
                 }
-                Result fileResult = new StreamResult(new File(targetFileName));
-                transformer.transform(new DOMSource(doc), fileResult);
-                transformer.reset();
+                if (docClass.cfgClassName != null) {
+                  generateClass(classTplTargetDir, marshaller, configTransformer, docBuilder, docClass, docClass.cfgClassName);
+                }
+              }
             }
-
-            // Marshall and transform tree
-            JAXBContext jaxbTreeContext =
-                    JAXBContext.newInstance("extdoc.jsdoc.tree");
-            Marshaller treeMarshaller = jaxbTreeContext.createMarshaller();
-            treeMarshaller.setProperty(
-                    Marshaller.JAXB_FORMATTED_OUTPUT,
-                    true
-            );
-
-            Templates treeTransformation =
-                    factory.newTemplates (new StreamSource(treeTplFileName)) ;
-            Transformer treeTransformer = treeTransformation.newTransformer();
-            Document doc =  builderFactory.newDocumentBuilder().newDocument();
-            treeMarshaller.marshal(context.getTree(), doc);
-            if (GENERATE_DEBUG_XML){
-                    treeMarshaller.
-                            marshal(context.getTree(), new File(treeTplTargetFile+"_"));
-            }
-            Result fileResult = new StreamResult(new File(treeTplTargetFile));
-            treeTransformer.transform(new DOMSource(doc), fileResult);
 
         } catch (JAXBException e) {
             e.printStackTrace();
@@ -1087,4 +1480,101 @@ public class FileProcessor{
             e.printStackTrace();
         }
     }
+
+  private void generateClass(String classTplTargetDir, Marshaller marshaller, Transformer transformer, DocumentBuilder docBuilder, DocClass docClass, String className) throws JAXBException, TransformerException {
+    logger.fine("Saving: " + className);
+    String targetFileName = new StringBuilder()
+            .append(classTplTargetDir)
+            .append(File.separator)
+            .append(className.replace('.', File.separatorChar))
+            .append('.')
+            .append(OUT_FILE_EXTENSION)
+            .toString();
+    Document doc = docBuilder.newDocument();
+    marshaller.marshal(docClass, doc);
+    File targetFile = new File(targetFileName);
+    targetFile.getParentFile().mkdirs();
+    if (GENERATE_DEBUG_XML){
+        marshaller.marshal(docClass, new File(targetFileName+"_"));
+    }
+    Result fileResult = new StreamResult(targetFile);
+    transformer.transform(new DOMSource(doc), fileResult);
+    transformer.reset();
+  }
+
+  public static String replaceKeyword(String ide) {
+        if (ide == null) {
+            return null;
+        }
+        // correct wrong Ext documentation, where parameters are sometimes directly followed by a dot:
+        if (ide.endsWith(".")) {
+            ide = ide.substring(0, ide.length()-1);
+        }
+        // rename keyword-named identifiers by postfixing with "_":
+        return "package".equals(ide) || "class".equals(ide) || "is".equals(ide) || "as".equals(ide) || "this".equals(ide)
+            ? ide + "_"
+            : ide;
+    }
+
+    private static final String[] BUILT_IN_TYPES = new String[]{"Number", "String", "Boolean", "Object", "RegExp"};
+    private static final String[] JS_TYPES = new String[]{"HTMLElement", "Node", "Event"};
+
+    public String asAS3Type(String type) {
+      if (type == null) {
+        return "void";
+      }
+      DocClass docClass = context.resolveClass(type);
+      if (docClass != null) {
+        return docClass.as3ClassName;
+      }
+      if (type.contains("|") || type.contains("/") || "mixed".equalsIgnoreCase(type) || "null".equals(type)) {
+        return "*";
+      }
+      if ("Hash".equals(type) || "StyleSheet".equals(type) || "CSSRule".equals(type)) {
+        return "Object";
+      }
+      if ("DOMElement".equals(type) || "XMLElement".equals(type)) {
+        return "js.Element";
+      }
+      if ("XMLDocument".equals(type)) {
+        return "js.Document";
+      }
+      if ("HtmlNode".equals(type)) {
+        return "js.Node";
+      }
+      if ("float".equalsIgnoreCase(type)) {
+        return "Number";
+      }
+      if ("integer".equalsIgnoreCase(type)) {
+        return "int";
+      }
+      if ("Constructor".equals(type)) {
+        return "Class";
+      }
+      for (String builtInType : BUILT_IN_TYPES) {
+        if (builtInType.equalsIgnoreCase(type)) {
+          return builtInType;
+        }
+      }
+      for (String jsType : JS_TYPES) {
+        if (jsType.equalsIgnoreCase(type)) {
+          return "js." + jsType;
+        }
+      }
+      if (type.endsWith("[]") || type.charAt(0) == '[' && type.charAt(type.length()-1) == ']') {
+        return "Array";
+      }
+      if ("Layout".equals(type)) {
+        return "ext.layout.ContainerLayout";
+      }
+      if (type.charAt(0) == '(' && type.charAt(type.length()-1) == ')') {
+        type = type.substring(1, type.length() - 1);
+      }
+      if (type.endsWith(".")) {
+        type = type.substring(0, type.length() - 1);
+      }
+      String[] parts = StringUtils.separateByLastDot(type);
+      return (parts[0].length() > 0 ? parts[0].toLowerCase() + "." : "" ) + parts[1];
+    }
+
 }

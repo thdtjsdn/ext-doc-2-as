@@ -2,6 +2,8 @@ package extdoc.jsdoc.tags.impl;
 
 import extdoc.jsdoc.tags.Tag;
 
+import java.util.regex.Pattern;
+
 /**
  * User: Andrey Zubkov
  * Date: 30.10.2008
@@ -58,21 +60,28 @@ class TagImpl implements Tag {
         return text.substring(start, end);
     }
 
-    private static final String OPTIONAL_U = "(Optional)";
-    private static final String OPTIONAL_L = "(optional)";
-    private static final int OPTIONAL_LEN = OPTIONAL_U.length();
+    private static final String[] OPTIONAL = new String[]{"(Optional)", "(optional)", "Optional."};
 
-    boolean isOptional(String text){        
-        return text!=null && ((text.startsWith(OPTIONAL_U)
-                || text.startsWith(OPTIONAL_L)));
+    boolean isOptional(String text){
+      if (text != null) {
+        for (String anOPTIONAL : OPTIONAL) {
+          if (text.startsWith(anOPTIONAL)) {
+            return true;
+          }
+        }
+      }
+      return false;
     }
 
     String cutOptional(String text){
-        String str = text;
-        if (isOptional(text)){
-            str = text.length()>OPTIONAL_LEN+1?text.substring(OPTIONAL_LEN+1):"";            
+      if (text != null) {
+        for (String anOPTIONAL : OPTIONAL) {
+          if (text.startsWith(anOPTIONAL)) {
+            return text.substring(anOPTIONAL.length()).trim();
+          }
         }
-        return str;
+      }
+      return text;
     }
 
 }

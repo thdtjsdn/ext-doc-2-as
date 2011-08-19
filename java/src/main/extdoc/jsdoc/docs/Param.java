@@ -7,7 +7,9 @@ package extdoc.jsdoc.docs;
  */
 public class Param {
     public String type;
+    public String as3Type;
     public String name;
     public String description;
     public boolean optional;
+    public boolean rest;
 }

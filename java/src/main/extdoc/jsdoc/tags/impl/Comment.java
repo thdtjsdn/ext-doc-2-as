@@ -1,6 +1,7 @@
 package extdoc.jsdoc.tags.impl;
 
 import extdoc.jsdoc.tags.Tag;
+import extdoc.jsdoc.tags.TypeTag;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -166,7 +167,7 @@ public class Comment {
                 if (tagName == null){
                     description = tx;
                 }else{
-                    TagImpl tag;
+                    Tag tag;
                     if (tagName.equals("@class")){
                         tag = new ClassTagImpl(tagName, tx);
                     }else if (tagName.equals("@param")){
@@ -176,7 +177,13 @@ public class Comment {
                     }else if (tagName.equals("@cfg")){
                         tag = new CfgTagImpl(tagName, tx);
                     }else if (tagName.equals("@type")){
-                        tag = new TypeTagImpl(tagName, tx);
+                        TypeTag typeTag = new TypeTagImpl(tagName, tx);
+                        // Ext JS documentation bug: sometime, the property description is placed *after* the @type annotation
+                        String typeTagDescription = typeTag.getDescription();
+                        if (typeTagDescription != null) {
+                            description = description == null ? typeTagDescription : description + "\n" + typeTagDescription;
+                        }
+                        tag = typeTag; 
                     }else if (tagName.equals("@return")){
                         tag = new ReturnTagImpl(tagName, tx);
                     }else if (tagName.equals("@member")){

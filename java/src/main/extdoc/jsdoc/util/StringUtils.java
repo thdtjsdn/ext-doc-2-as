@@ -242,6 +242,9 @@ public class StringUtils {
      * @return Array of strings [0] package [1] class
      */
     public static String[] separatePackage(String className){
+      // No dot-named classes for AS3:
+      return separateByLastDot(className);
+      /*
         String [] str = new String[2];
         String[] items = className.split("\\.");
         if (items.length == 1){
@@ -268,6 +271,7 @@ public class StringUtils {
             str[1] = cls.toString();
         }
         return str;
+        */
     }
 
     public static String[] separateByLastDot(String className){

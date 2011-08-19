@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <template>
     <classTemplate tpl="tpl/class.xsl" targetDir="output"/>
-    <treeTemplate tpl="tpl/tree.xsl" targetFile="output/tree.js"/>
+    <singletonTemplate tpl="tpl/singleton.xsl" targetDir="output"/>
+    <configClassTemplate tpl="tpl/config-class.xsl"/>
     <source targetDir="source" wrapper="source-wrap.html"/>
     <resources>
         <copy src="index.html" dst="index.html"/>

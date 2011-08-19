@@ -52,7 +52,7 @@
     <sources>
         <source src="ext/src" match="*.js"/>
         <!--<source src="ext" match="Ext*.js"/>-->
-        <source src="sample.js" />
+        <!--source src="sample.js" /-->
     </sources>
     <tags>
         <tag name="author" title="Author"/>
