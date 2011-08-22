@@ -10,6 +10,9 @@
 
 /**
  * <xsl:value-of select="description" disable-output-escaping="yes"/>
+ *
+ * &lt;p>Copyright &amp;#169; 2011 Sencha Inc.&lt;/p>
+ *
  * @see <xsl:value-of select="as3ClassName"/>
  * @see http://dev.sencha.com/deploy/ext-3.3.1/docs/source/<xsl:value-of select="href"/> Ext JS source
  */

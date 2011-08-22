@@ -36,6 +36,9 @@
 
 /**
  * <xsl:value-of select="description" disable-output-escaping="yes"/>
+ *
+ * &lt;p>Copyright &amp;#169; 2011 Sencha Inc.&lt;/p>
+ *
 <xsl:if test="xtype">
  * &lt;p>This component is created by the xtype '<xsl:value-of select="xtype"/>' / the EXML element &amp;lt;<xsl:value-of select="xtype"/>>.&lt;/p></xsl:if>
   <xsl:if test="as3SingletonName">

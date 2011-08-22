@@ -73,7 +73,7 @@
         </copy>
         <mkdir dir="${build.dir}/dist/ext-doc-${version}/sample"/>
         <copy todir="${build.dir}/dist/ext-doc-${version}/sample">
-            <fileset dir="sample" includes="*.*"/>
+            <fileset dir="sample" includes="**/*" />
         </copy>
         <mkdir dir="${build.dir}/dist/ext-doc-${version}/lib"/>
         <copy todir="${build.dir}/dist/ext-doc-${version}/lib">

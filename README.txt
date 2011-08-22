@@ -14,9 +14,9 @@ How to update Ext AS:
 1) Download latest ExtJS 3.x source code from Sencha
 2) Merge into https://github.com/CoreMedia/ext-js-doc-fixes
 3) Create "sample/ext" folder
-4) Copy ExtJS source to "samplel/ext" (ex.: sample/ext/source/core/Ext.js)
+4) Copy ExtJS source to "sample/ext" (ex.: sample/ext/src/core/Ext.js)
 5) Build ext-doc-2-as using ant
-6) Run "build/dist/ext-doc-snapshot/sample/ext-doc.(bat|sh)"
+6) Goto "build/dist/ext-doc-snapshot/sample/" and run "ext-doc.(bat|sh)"
    ("build/dist/ext-doc-snapshot/output" directory will be created)
 7) Copy "build/dist/ext-doc-snapshot/output/output" to jangaroo-libs/ext-as:
    * "output/ext/config" to "src/main/joo"

@@ -14,8 +14,11 @@ import joo.JavaScriptObject;</xsl:if>
 
 /**
  * <xsl:value-of select="description" disable-output-escaping="yes"/>
- * &lt;p>This class serves as a typed config object for constructor of class <xsl:value-of select="shortClassName"/>.&lt;/p>
  *
+ * &lt;p>This class <xsl:if test="xtype">represents the xtype '<xsl:value-of select="xtype"/>' and </xsl:if>serves as a
+ * typed config object for constructor of class <xsl:value-of select="shortClassName"/>.&lt;/p>
+ *
+ * &lt;p>Copyright &amp;#169; 2011 Sencha Inc.&lt;/p>
  * @see <xsl:value-of select="as3ClassName"/>
  */
 [ExtConfig(target="<xsl:value-of select="as3ClassName"/>"<xsl:if test="xtype">, xtype="<xsl:value-of select="xtype"/>"</xsl:if>)]
